@@ -15,14 +15,17 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 ├── src/
 │   ├── app.ts           # アプリケーション本体（ルート統合）
 │   ├── schemas/         # Zodスキーマ定義
-│   │   ├── common.ts    # 共通スキーマ（categorySchema, scoreSheetSchema, diceSchema）✅ 完成
-│   │   ├── evaluate.ts  # evaluate API のリクエスト/レスポンススキーマ（今後）
-│   │   ├── calculate-score.ts # calculate-score API のリクエスト/レスポンススキーマ（今後）
-│   │   └── index.ts     # エクスポート集約
+│   │   ├── common.ts    # 共通スキーマ ✅ 完成
+│   │   ├── evaluate.ts  # evaluate API スキーマ ✅ 完成
+│   │   ├── calculate-score.ts # calculate-score API スキーマ ✅ 完成
+│   │   └── index.ts     # エクスポート集約（今後）
+│   ├── types/           # TypeScript型定義
+│   │   ├── evaluate.ts  # evaluate API 型（今後）
+│   │   ├── calculate-score.ts # calculate-score API 型（今後）
+│   │   └── index.ts     # エクスポート集約（今後）
 │   ├── routes/          # ルート定義（今後追加）
 │   │   ├── evaluate.ts  # /evaluate エンドポイント実装
 │   │   └── calculate-score.ts # /calculate-score エンドポイント実装
-│   └── types/           # TypeScript型定義（今後追加）
 └── package.json
 ```
 
@@ -43,22 +46,27 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 - ✅ **Phase 1**: `src/schemas/common.ts` - 共通スキーマ完成
   - categorySchema, scoreSheetSchema, fullDiceSchema, partialDiceSchema を定義
   - ヨットの12種類の役と、各役のバリデーションルールを実装
+  - multiples ヘルパー関数で dice カテゴリを生成
+
+- ✅ **Phase 2**: API別スキーマ定義 - 完成
+  - `src/schemas/evaluate.ts`: evaluateRequestSchema, evaluateResponseSchema
+    - Request: scoreSheet, dice（fullDiceSchema）, rollCount（1-3）
+    - Response: data（union で dice/category 選択肢を分岐）, error（optional）
+  - `src/schemas/calculate-score.ts`: calculateScoreRequestSchema, calculateScoreResponseSchema
+    - Request: scoreSheet, category, dice
+    - Response: data（scoreSheet + bonus: 0 or 35）, error（optional）
 
 ### 次回以降の作業手順
 
-1. **Phase 2**: API別スキーマ定義
-   - `src/schemas/evaluate.ts`: evaluate API のリクエスト/レスポンススキーマ
-   - `src/schemas/calculate-score.ts`: calculate-score API のリクエスト/レスポンススキーマ
-   - `src/schemas/index.ts`: エクスポート集約
+1. **Phase 3**: 型生成 - API ごとに分割
+   - `src/types/evaluate.ts`: EvaluateRequest, EvaluateResponse 型を z.infer で生成
+   - `src/types/calculate-score.ts`: CalculateScoreRequest, CalculateScoreResponse 型を z.infer で生成
 
-2. **Phase 3**: 型生成
-   - `src/types/yacht.ts` で `z.infer` を使ってスキーマから TypeScript 型を生成
+2. **Phase 4**: ルート実装
+   - `src/routes/evaluate.ts`: /evaluate エンドポイント実装（ビジネスロジック）
+   - `src/routes/calculate-score.ts`: /calculate-score エンドポイント実装（ビジネスロジック）
 
-3. **Phase 4**: ルート実装
-   - `src/routes/evaluate.ts`: /evaluate エンドポイント実装
-   - `src/routes/calculate-score.ts`: /calculate-score エンドポイント実装
-
-4. **Phase 5**: アプリ統合
+3. **Phase 5**: アプリ統合
    - `src/app.ts` でルートをマウント
    - エラーハンドリング実装
 
@@ -114,6 +122,26 @@ export const calculateScoreResponseSchema = z.object({
   }).optional(),
   error: z.object({ message: z.string() }).optional(),
 })
+```
+
+### Phase 3: 型生成のパターン
+
+```typescript
+// src/types/evaluate.ts
+import { z } from 'zod'
+import { evaluateRequestSchema, evaluateResponseSchema } from '../schemas/evaluate'
+
+export type EvaluateRequest = z.infer<typeof evaluateRequestSchema>
+export type EvaluateResponse = z.infer<typeof evaluateResponseSchema>
+```
+
+```typescript
+// src/types/calculate-score.ts
+import { z } from 'zod'
+import { calculateScoreRequestSchema, calculateScoreResponseSchema } from '../schemas/calculate-score'
+
+export type CalculateScoreRequest = z.infer<typeof calculateScoreRequestSchema>
+export type CalculateScoreResponse = z.infer<typeof calculateScoreResponseSchema>
 ```
 
 ### Phase 4: ルート実装の基本パターン
