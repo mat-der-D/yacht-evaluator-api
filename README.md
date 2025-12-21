@@ -15,9 +15,13 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 ├── src/
 │   ├── app.ts           # アプリケーション本体（ルート統合）
 │   ├── schemas/         # Zodスキーマ定義
-│   │   ├── yacht.ts     # ヨット関連のスキーマ
+│   │   ├── common.ts    # 共通スキーマ（categorySchema, scoreSheetSchema, diceSchema）✅ 完成
+│   │   ├── evaluate.ts  # evaluate API のリクエスト/レスポンススキーマ（今後）
+│   │   ├── calculate-score.ts # calculate-score API のリクエスト/レスポンススキーマ（今後）
 │   │   └── index.ts     # エクスポート集約
 │   ├── routes/          # ルート定義（今後追加）
+│   │   ├── evaluate.ts  # /evaluate エンドポイント実装
+│   │   └── calculate-score.ts # /calculate-score エンドポイント実装
 │   └── types/           # TypeScript型定義（今後追加）
 └── package.json
 ```
@@ -34,55 +38,148 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 
 ## 開発の流れ
 
+### 進捗状況
+
+- ✅ **Phase 1**: `src/schemas/common.ts` - 共通スキーマ完成
+  - categorySchema, scoreSheetSchema, fullDiceSchema, partialDiceSchema を定義
+  - ヨットの12種類の役と、各役のバリデーションルールを実装
+
 ### 次回以降の作業手順
 
-1. **スキーマ設計**: `src/schemas/yacht.ts` でリクエスト/レスポンスのスキーマを定義
-2. **型生成**: `src/types/yacht.ts` で `z.infer` を使って型を生成
-3. **ルート実装**: `src/routes/yacht.ts` でエンドポイントを実装
-4. **統合**: `src/app.ts` でルートをマウント
+1. **Phase 2**: API別スキーマ定義
+   - `src/schemas/evaluate.ts`: evaluate API のリクエスト/レスポンススキーマ
+   - `src/schemas/calculate-score.ts`: calculate-score API のリクエスト/レスポンススキーマ
+   - `src/schemas/index.ts`: エクスポート集約
 
-### スキーマ定義の基本パターン
+2. **Phase 3**: 型生成
+   - `src/types/yacht.ts` で `z.infer` を使ってスキーマから TypeScript 型を生成
+
+3. **Phase 4**: ルート実装
+   - `src/routes/evaluate.ts`: /evaluate エンドポイント実装
+   - `src/routes/calculate-score.ts`: /calculate-score エンドポイント実装
+
+4. **Phase 5**: アプリ統合
+   - `src/app.ts` でルートをマウント
+   - エラーハンドリング実装
+
+### Phase 2: API別スキーマ定義のパターン
+
+#### evaluate API（合法手評価）
 ```typescript
-// src/schemas/yacht.ts
+// src/schemas/evaluate.ts
 import { z } from 'zod'
+import { scoreSheetSchema, fullDiceSchema, categorySchema } from './common'
 
 export const evaluateRequestSchema = z.object({
-  // フィールドを定義
+  scoreSheet: scoreSheetSchema,
+  dice: fullDiceSchema,
+  rollCount: z.number().int().min(1).max(3),
 })
 
 export const evaluateResponseSchema = z.object({
-  // フィールドを定義
+  data: z.array(z.union([
+    // 1,2投目: diceToHold の選択
+    z.object({
+      choiceType: z.literal('dice'),
+      diceToHold: z.array(z.number().min(1).max(6)).min(0).max(5),
+      expectation: z.number(),
+    }),
+    // 3投目: category の選択
+    z.object({
+      choiceType: z.literal('category'),
+      category: categorySchema,
+      expectation: z.number(),
+    }),
+  ])).optional(),
+  error: z.object({ message: z.string() }).optional(),
 })
 ```
 
-### ルート実装の基本パターン
+#### calculate-score API（スコアシート計算）
 ```typescript
-// src/routes/yacht.ts (今後作成)
+// src/schemas/calculate-score.ts
+import { z } from 'zod'
+import { scoreSheetSchema, fullDiceSchema, categorySchema } from './common'
+
+export const calculateScoreRequestSchema = z.object({
+  scoreSheet: scoreSheetSchema,
+  category: categorySchema,
+  dice: fullDiceSchema,
+})
+
+export const calculateScoreResponseSchema = z.object({
+  data: z.object({
+    scoreSheet: scoreSheetSchema,
+    bonus: z.number().int().min(0),
+  }).optional(),
+  error: z.object({ message: z.string() }).optional(),
+})
+```
+
+### Phase 4: ルート実装の基本パターン
+
+```typescript
+// src/routes/evaluate.ts
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { evaluateRequestSchema } from '../schemas/yacht'
+import { evaluateRequestSchema, evaluateResponseSchema } from '../schemas/evaluate'
 
-const yacht = new Hono()
+const evaluate = new Hono()
 
-yacht.post('/evaluate', zValidator('json', evaluateRequestSchema), (c) => {
-  const data = c.req.valid('json') // 型安全にバリデーション済みデータを取得
-  // 処理を実装
-  return c.json({ /* レスポンス */ })
+evaluate.post('/', zValidator('json', evaluateRequestSchema), (c) => {
+  const { scoreSheet, dice, rollCount } = c.req.valid('json')
+
+  // ビジネスロジック実装
+  // 合法手を列挙し、それぞれの評価値を計算
+
+  return c.json({
+    data: [ /* 合法手のリスト */ ]
+  })
 })
 
-export default yacht
+export default evaluate
 ```
 
-### アプリへの統合パターン
+```typescript
+// src/routes/calculate-score.ts
+import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
+import { calculateScoreRequestSchema, calculateScoreResponseSchema } from '../schemas/calculate-score'
+
+const calculateScore = new Hono()
+
+calculateScore.post('/', zValidator('json', calculateScoreRequestSchema), (c) => {
+  const { scoreSheet, category, dice } = c.req.valid('json')
+
+  // ビジネスロジック実装
+  // 選んだ役でスコアシートを更新し、ボーナス点を計算
+
+  return c.json({
+    data: {
+      scoreSheet: { /* 更新済みのスコアシート */ },
+      bonus: 0 // または 35
+    }
+  })
+})
+
+export default calculateScore
+```
+
+### Phase 5: アプリへの統合パターン
 ```typescript
 // src/app.ts
 import { Hono } from 'hono'
-import yacht from './routes/yacht'
+import evaluate from './routes/evaluate'
+import calculateScore from './routes/calculate-score'
 
 const app = new Hono()
 
+// ヘルスチェック
 app.get('/health', (c) => c.json({ status: 'ok' }))
-app.route('/api/yacht', yacht) // ルートをマウント
+
+// API ルートをマウント
+app.route('/api/yacht/evaluate', evaluate)
+app.route('/api/yacht/calculate-score', calculateScore)
 
 export default app
 ```
