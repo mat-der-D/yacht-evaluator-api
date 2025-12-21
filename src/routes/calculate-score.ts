@@ -27,3 +27,5 @@ calculateScore.post(
     return c.json(response)
   }
 )
+
+export default calculateScore
