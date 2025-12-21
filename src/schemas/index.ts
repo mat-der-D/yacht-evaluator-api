@@ -1,3 +1,3 @@
 export * from './common.ts'
 export * from './evaluate.ts'
-export * from './calculateScore.ts'
+export * from './calculate-score.ts'

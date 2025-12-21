@@ -4,5 +4,5 @@ import {
   evaluateResponseSchema,
 } from '../schemas/evaluate'
 
-export type EvaluateRequest = z.infer<evaluateRequestSchema>
-export type EvaluateResponse = z.infere<evaluateResponseSchema>
+export type EvaluateRequest = z.infer<typeof evaluateRequestSchema>
+export type EvaluateResponse = z.infer<typeof evaluateResponseSchema>
