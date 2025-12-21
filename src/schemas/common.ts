@@ -5,7 +5,7 @@ const multiples = (n: number) => Array.from({ length: 6 }, (_, i) => n * i)
 const createNumberCategoryVariable = (n: number) =>
   z.literal(multiples(n)).nullable()
 
-const scoreSheetSchema = z.object({
+export const scoreSheetSchema = z.object({
   ace: createNumberCategoryVariable(1),
   deuce: createNumberCategoryVariable(2),
   trey: createNumberCategoryVariable(3),
@@ -27,7 +27,7 @@ const scoreSheetSchema = z.object({
   yacht: z.literal([0, 50]).nullable(),
 })
 
-const categorySchema = z.enum([
+export const categorySchema = z.enum([
   'ace',
   'deuce',
   'trey',
@@ -42,6 +42,6 @@ const categorySchema = z.enum([
   'yacht',
 ])
 
-const fullDiceSchema = z.array(z.int().min(1).max(6)).length(5)
+export const fullDiceSchema = z.array(z.int().min(1).max(6)).length(5)
 
-const partialDiceSchema = z.array(z.int().min(1).max(6)).min(0).max(5)
+export const partialDiceSchema = z.array(z.int().min(1).max(6)).min(0).max(5)
