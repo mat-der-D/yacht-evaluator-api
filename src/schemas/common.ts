@@ -19,7 +19,7 @@ const scoreSheetSchema = z.object({
     .min(5)
     .max(30)
     .refine((n) => ![6, 29].includes(n), {
-      error: 'Expected a value exlucding 6 and 29',
+      error: 'Expected a value excluding 6 and 29',
     })
     .nullable(),
   smallStraight: z.literal([0, 15]).nullable(),
