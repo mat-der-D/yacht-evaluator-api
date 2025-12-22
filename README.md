@@ -27,10 +27,14 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 │   ├── utilities/       # ユーティリティ関数
 │   │   ├── types.ts     # DiceSet 型とファクトリ関数 ✅ 完成
 │   │   ├── score.ts     # スコア計算ロジック ✅ 完成
-│   │   └── index.ts     # エクスポート集約 ✅ 完成
+│   │   ├── index.ts     # エクスポート集約 ✅ 完成
+│   │   └── __tests__/   # ユーティリティテスト
+│   │       └── score.test.ts # スコア計算ロジックテスト ✅ 完成（13 pass）
 │   ├── routes/          # ルート定義
 │   │   ├── evaluate.ts  # /evaluate エンドポイント ⏳ 未実装
-│   │   └── calculate-score.ts # /calculate-score エンドポイント ✅ 完成
+│   │   ├── calculate-score.ts # /calculate-score エンドポイント ✅ 完成
+│   │   └── __tests__/   # エンドポイントテスト
+│   │       └── calculate-score.test.ts # calculate-score テスト ✅ 完成（12 pass）
 └── package.json
 ```
 
