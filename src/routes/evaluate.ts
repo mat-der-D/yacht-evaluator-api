@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { evaluateRequestSchema } from '../schemas/evaluate'
-import type { EvaluateResponse } from '../types/evaluate'
+import { evaluateRequestSchema } from '../schemas'
+import type { EvaluateResponse } from '../types'
 
 const evaluate = new Hono()
 
