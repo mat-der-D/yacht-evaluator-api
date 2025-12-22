@@ -79,10 +79,17 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 - ⏳ **Phase 4b**: evaluate ルート実装 - 未実装
   - ビジネスロジック（合法手評価、最適手選出）待ち
 
-- ⏳ **Phase 4-test**: calculate-score / evaluate ルートのテスト実装 - 未実装
-  - テストフレームワークセットアップ（bun:test）
-  - calculate-score エンドポイントのユニットテスト
-  - evaluate エンドポイントのユニットテスト
+- ✅ **Phase 4-test (calculate-score)**: calculate-score テスト実装 - 完成
+  - テストフレームワークセットアップ（bun:test） ✅ 完成
+  - `src/utilities/__tests__/score.test.ts`: スコア計算ロジックのテスト ✅ 完成（13 pass）
+    - `testCalculateScore`: 12カテゴリのスコア計算テスト
+    - `calculateBonus`: ボーナス判定ロジック（3パターン）
+  - `src/routes/__tests__/calculate-score.test.ts`: calculate-score エンドポイントテスト ✅ 完成（12 pass）
+    - `testCalculateScoreRoute`: 全12カテゴリのエンドポイント統合テスト
+    - ボーナス有無パターンの混在テスト
+
+- ⏳ **Phase 4-test (evaluate)**: evaluate ルートのテスト実装 - 未実装
+  - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
 
 ### 次回以降の作業手順
 
@@ -90,11 +97,8 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
    - `src/routes/evaluate.ts`: /evaluate エンドポイント実装（ビジネスロジック）
    - 合法手の列挙と評価値計算ロジック
 
-2. **Phase 4-test**: ユニットテスト実装
-   - テストフレームワークセットアップ：`bun add -d bun:test`
-   - `src/routes/__tests__/calculate-score.test.ts`: calculate-score エンドポイントのテスト
+2. **Phase 4-test (evaluate)**: evaluate ルートのテスト実装
    - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
-   - `src/utilities/__tests__/score.test.ts`: スコア計算ロジックのテスト
 
 3. **Phase 5**: アプリ統合
    - `src/app.ts` でルート（evaluate, calculate-score）をマウント
