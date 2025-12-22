@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
-import calculateScore from './routes/calculate-score'
-import evaluate from './routes/evaluate'
+import calculateScoreRoute from './routes/calculate-score'
+import evaluateRoute from './routes/evaluate'
 
 const app = new Hono()
 
@@ -8,7 +8,7 @@ app.get('/health', (c) => {
   return c.json({ status: 'ok' })
 })
 
-app.route('/evaluate', evaluate)
-app.route('/calculate-score', calculateScore)
+app.route('/evaluate', evaluateRoute)
+app.route('/calculate-score', calculateScoreRoute)
 
 export default app

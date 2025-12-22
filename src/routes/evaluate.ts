@@ -3,9 +3,9 @@ import { zValidator } from '@hono/zod-validator'
 import { evaluateRequestSchema } from '../schemas'
 import type { EvaluateResponse } from '../types'
 
-const evaluate = new Hono()
+const evaluateRoute = new Hono()
 
-evaluate.post('/', zValidator('json', evaluateRequestSchema), (c) => {
+evaluateRoute.post('/', zValidator('json', evaluateRequestSchema), (c) => {
   // const { scoreSheet, dice, rollCount } = c.req.valid('json')
   c.req.valid('json') // ダミーのため一旦 validation だけ行う。
 
@@ -20,4 +20,4 @@ evaluate.post('/', zValidator('json', evaluateRequestSchema), (c) => {
   return c.json(response)
 })
 
-export default evaluate
+export default evaluateRoute
