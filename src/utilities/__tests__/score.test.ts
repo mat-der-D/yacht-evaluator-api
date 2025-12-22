@@ -1,7 +1,36 @@
 import { test, expect } from 'bun:test'
 import { categorySchema, fullDiceSchema, scoreSheetSchema } from '../../schemas'
-import { calculateBonus, calculateScore } from '../score'
+import { calculateBonus, calculateScore, calculateScoreOfSheet } from '../score'
 import type { ScoreSheet } from '../../types'
+
+const emptyScoreSheet: ScoreSheet = Object.fromEntries(
+  categorySchema.options.map((category) => [category, null])
+) as ScoreSheet
+
+const createScoreSheet = (overrides: Partial<ScoreSheet>): ScoreSheet => {
+  return {
+    ...emptyScoreSheet,
+    ...overrides,
+  }
+}
+
+const testCalculateScoreOfSheet = (
+  testCases: [Partial<ScoreSheet>, number][]
+) => {
+  test('calculateScoreOfSheet', () => {
+    for (const [partialSheet, answer] of testCases) {
+      const scoreSheet = createScoreSheet(partialSheet)
+      const score = calculateScoreOfSheet(scoreSheet)
+      expect(score).toBe(answer)
+    }
+  })
+}
+
+testCalculateScoreOfSheet([
+  [{}, 0],
+  [{ ace: 5, deuce: 10, trey: 15 }, 30],
+  [{ four: 20, five: 25, six: 30, yacht: 50 }, 160],
+])
 
 const testCalculateScore = (
   categoryName: string,
@@ -90,17 +119,6 @@ testCalculateScore('yacht', [
   [[2, 2, 2, 2, 3], 0],
   [[3, 1, 2, 5, 6], 0],
 ])
-
-const emptyScoreSheet: ScoreSheet = Object.fromEntries(
-  categorySchema.options.map((category) => [category, null])
-) as ScoreSheet
-
-const createScoreSheet = (overrides: Partial<ScoreSheet>): ScoreSheet => {
-  return {
-    ...emptyScoreSheet,
-    ...overrides,
-  }
-}
 
 test('calculateBonus', () => {
   const testCases: [ScoreSheet, 0 | 35][] = [
