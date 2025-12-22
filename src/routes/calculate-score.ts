@@ -9,8 +9,7 @@ calculateScore.post(
   '/',
   zValidator('json', calculateScoreRequestSchema),
   (c) => {
-    // const { scoreSheet, category, dice } = c.req.valid('json')
-    const { scoreSheet } = c.req.valid('json') // ダミー実装なので一部のみ使う
+    const { scoreSheet, category, dice } = c.req.valid('json')
 
     // ビジネスロジック実装
     // 選んだ役でスコアシートを更新し、ボーナス点を計算
