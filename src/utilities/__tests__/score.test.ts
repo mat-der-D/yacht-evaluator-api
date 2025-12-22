@@ -95,25 +95,30 @@ const emptyScoreSheet: ScoreSheet = Object.fromEntries(
   categorySchema.options.map((category) => [category, null])
 ) as ScoreSheet
 
+const createScoreSheet = (overrides: Partial<ScoreSheet>): ScoreSheet => {
+  return {
+    ...emptyScoreSheet,
+    ...overrides,
+  }
+}
+
 test('calculateBonus', () => {
   const testCases: [ScoreSheet, 0 | 35][] = [
-    [emptyScoreSheet, 0],
+    [createScoreSheet({}), 0],
     [
-      {
-        ...emptyScoreSheet,
+      createScoreSheet({
         ace: 5,
         deuce: 10,
         six: 30,
-      },
+      }),
       0,
     ],
     [
-      {
-        ...emptyScoreSheet,
+      createScoreSheet({
         four: 20,
         five: 25,
         six: 30,
-      },
+      }),
       35,
     ],
   ]
