@@ -12,6 +12,7 @@ type DiceSetCounts = z.infer<typeof diceSetCountsSchema>
 export type DiceSet = {
   counts: DiceSetCounts
   faces: number[]
+  toString(): string
   add(other: DiceSet): DiceSet
   subtract(other: DiceSet): DiceSet
   eq(other: DiceSet): boolean
@@ -30,6 +31,7 @@ export const createDiceSet = (arr: number[]) => {
       const result = self.counts.map((v, i) => v + other.counts[i]!)
       return createDiceSet(result)
     },
+    toString: () => self.counts.toString(),
     subtract: (other: DiceSet) => {
       const result = self.counts.map((v, i) => v - other.counts[i]!)
       return createDiceSet(result)
@@ -66,4 +68,19 @@ const createDiceSetFromFaces = (faces: number[]) => {
     counts[face - 1]! += 1
   }
   return createDiceSet(counts)
+}
+
+export type DiceSetMap<T> = {
+  set(diceSet: DiceSet, value: T): void
+  get(diceSet: DiceSet): T | undefined
+  has(diceSet: DiceSet): boolean
+}
+
+export const createDiceSetMap = <T>(): DiceSetMap<T> => {
+  const map = new Map<string, T>()
+  return {
+    set: (diceSet: DiceSet, value: T) => map.set(diceSet.toString(), value),
+    get: (diceSet: DiceSet) => map.get(diceSet.toString()),
+    has: (diceSet: DiceSet) => map.has(diceSet.toString()),
+  }
 }
