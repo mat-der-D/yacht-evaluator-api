@@ -13,19 +13,24 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 .
 ├── index.ts              # エントリポイント
 ├── src/
-│   ├── app.ts           # アプリケーション本体（ルート統合）
+│   ├── app.ts           # アプリケーション本体（ルート統合） ⏳ 未実装
 │   ├── schemas/         # Zodスキーマ定義
 │   │   ├── common.ts    # 共通スキーマ ✅ 完成
 │   │   ├── evaluate.ts  # evaluate API スキーマ ✅ 完成
 │   │   ├── calculate-score.ts # calculate-score API スキーマ ✅ 完成
-│   │   └── index.ts     # エクスポート集約（今後）
+│   │   └── index.ts     # エクスポート集約 ✅ 完成
 │   ├── types/           # TypeScript型定義
-│   │   ├── evaluate.ts  # evaluate API 型（今後）
-│   │   ├── calculate-score.ts # calculate-score API 型（今後）
-│   │   └── index.ts     # エクスポート集約（今後）
-│   ├── routes/          # ルート定義（今後追加）
-│   │   ├── evaluate.ts  # /evaluate エンドポイント実装
-│   │   └── calculate-score.ts # /calculate-score エンドポイント実装
+│   │   ├── common.ts    # 共通型 ✅ 完成
+│   │   ├── evaluate.ts  # evaluate API 型 ✅ 完成
+│   │   ├── calculate-score.ts # calculate-score API 型 ✅ 完成
+│   │   └── index.ts     # エクスポート集約 ✅ 完成
+│   ├── utilities/       # ユーティリティ関数
+│   │   ├── types.ts     # DiceSet 型とファクトリ関数 ✅ 完成
+│   │   ├── score.ts     # スコア計算ロジック ✅ 完成
+│   │   └── index.ts     # エクスポート集約 ✅ 完成
+│   ├── routes/          # ルート定義
+│   │   ├── evaluate.ts  # /evaluate エンドポイント ⏳ 未実装
+│   │   └── calculate-score.ts # /calculate-score エンドポイント ✅ 完成
 └── package.json
 ```
 
@@ -53,98 +58,53 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
     - Request: scoreSheet, dice（fullDiceSchema）, rollCount（1-3）
     - Response: data（union で dice/category 選択肢を分岐）, error（optional）
   - `src/schemas/calculate-score.ts`: calculateScoreRequestSchema, calculateScoreResponseSchema
-    - Request: scoreSheet, category, dice
+    - Request: scoreSheet, category, dice（既スコア判定含む）
     - Response: data（scoreSheet + bonus: 0 or 35）, error（optional）
+
+- ✅ **Phase 3**: 型生成 - 完成
+  - `src/types/evaluate.ts`: EvaluateRequest, EvaluateResponse 型を z.infer で生成
+  - `src/types/calculate-score.ts`: CalculateScoreRequest, CalculateScoreResponse 型を z.infer で生成
+
+- ✅ **Phase 4a**: calculate-score ルート実装 - 完成かつテスト済み
+  - `src/routes/calculate-score.ts`: /calculate-score エンドポイント実装
+  - `src/utilities/types.ts`: DiceSet 型とユーティリティ関数群を実装
+    - createDiceSet, createDiceSetFromFullDice, createDiceSetFromPartialDice
+    - DiceSet.add, subtract, eq, gt, gte, lt, lte メソッド実装
+  - `src/utilities/score.ts`: スコア計算ロジック実装
+    - calculateScore: カテゴリ別スコア計算（12種類全対応）
+    - calculateBonus: ボーナス確定判定（数字カテゴリ合計 ≥ 63）
+    - 各カテゴリ別スコア計算関数と判定関数
+  - API テスト実行済み（正常動作確認済み）
+
+- ⏳ **Phase 4b**: evaluate ルート実装 - 未実装
+  - ビジネスロジック（合法手評価、最適手選出）待ち
+
+- ⏳ **Phase 4-test**: calculate-score / evaluate ルートのテスト実装 - 未実装
+  - テストフレームワークセットアップ（bun:test）
+  - calculate-score エンドポイントのユニットテスト
+  - evaluate エンドポイントのユニットテスト
 
 ### 次回以降の作業手順
 
-1. **Phase 3**: 型生成 - API ごとに分割
-   - `src/types/evaluate.ts`: EvaluateRequest, EvaluateResponse 型を z.infer で生成
-   - `src/types/calculate-score.ts`: CalculateScoreRequest, CalculateScoreResponse 型を z.infer で生成
-
-2. **Phase 4**: ルート実装
+1. **Phase 4b**: evaluate ルート実装
    - `src/routes/evaluate.ts`: /evaluate エンドポイント実装（ビジネスロジック）
-   - `src/routes/calculate-score.ts`: /calculate-score エンドポイント実装（ビジネスロジック）
+   - 合法手の列挙と評価値計算ロジック
+
+2. **Phase 4-test**: ユニットテスト実装
+   - テストフレームワークセットアップ：`bun add -d bun:test`
+   - `src/routes/__tests__/calculate-score.test.ts`: calculate-score エンドポイントのテスト
+   - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
+   - `src/utilities/__tests__/score.test.ts`: スコア計算ロジックのテスト
 
 3. **Phase 5**: アプリ統合
-   - `src/app.ts` でルートをマウント
-   - エラーハンドリング実装
+   - `src/app.ts` でルート（evaluate, calculate-score）をマウント
+   - ヘルスチェック等の共通エンドポイント
 
-### Phase 2: API別スキーマ定義のパターン
+4. **拡張**: エラーハンドリング改善（オプション）
+   - `zValidator` のカスタムエラーハンドリング
+   - エラーレスポンスに key 情報を追加
 
-#### evaluate API（合法手評価）
-```typescript
-// src/schemas/evaluate.ts
-import { z } from 'zod'
-import { scoreSheetSchema, fullDiceSchema, categorySchema } from './common'
-
-export const evaluateRequestSchema = z.object({
-  scoreSheet: scoreSheetSchema,
-  dice: fullDiceSchema,
-  rollCount: z.number().int().min(1).max(3),
-})
-
-export const evaluateResponseSchema = z.object({
-  data: z.array(z.union([
-    // 1,2投目: diceToHold の選択
-    z.object({
-      choiceType: z.literal('dice'),
-      diceToHold: z.array(z.number().min(1).max(6)).min(0).max(5),
-      expectation: z.number(),
-    }),
-    // 3投目: category の選択
-    z.object({
-      choiceType: z.literal('category'),
-      category: categorySchema,
-      expectation: z.number(),
-    }),
-  ])).optional(),
-  error: z.object({ message: z.string() }).optional(),
-})
-```
-
-#### calculate-score API（スコアシート計算）
-```typescript
-// src/schemas/calculate-score.ts
-import { z } from 'zod'
-import { scoreSheetSchema, fullDiceSchema, categorySchema } from './common'
-
-export const calculateScoreRequestSchema = z.object({
-  scoreSheet: scoreSheetSchema,
-  category: categorySchema,
-  dice: fullDiceSchema,
-})
-
-export const calculateScoreResponseSchema = z.object({
-  data: z.object({
-    scoreSheet: scoreSheetSchema,
-    bonus: z.number().int().min(0),
-  }).optional(),
-  error: z.object({ message: z.string() }).optional(),
-})
-```
-
-### Phase 3: 型生成のパターン
-
-```typescript
-// src/types/evaluate.ts
-import { z } from 'zod'
-import { evaluateRequestSchema, evaluateResponseSchema } from '../schemas/evaluate'
-
-export type EvaluateRequest = z.infer<typeof evaluateRequestSchema>
-export type EvaluateResponse = z.infer<typeof evaluateResponseSchema>
-```
-
-```typescript
-// src/types/calculate-score.ts
-import { z } from 'zod'
-import { calculateScoreRequestSchema, calculateScoreResponseSchema } from '../schemas/calculate-score'
-
-export type CalculateScoreRequest = z.infer<typeof calculateScoreRequestSchema>
-export type CalculateScoreResponse = z.infer<typeof calculateScoreResponseSchema>
-```
-
-### Phase 4: ルート実装の基本パターン
+### ルート実装の参考パターン（Phase 4以降）
 
 ```typescript
 // src/routes/evaluate.ts
@@ -168,32 +128,8 @@ evaluate.post('/', zValidator('json', evaluateRequestSchema), (c) => {
 export default evaluate
 ```
 
-```typescript
-// src/routes/calculate-score.ts
-import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
-import { calculateScoreRequestSchema, calculateScoreResponseSchema } from '../schemas/calculate-score'
 
-const calculateScore = new Hono()
-
-calculateScore.post('/', zValidator('json', calculateScoreRequestSchema), (c) => {
-  const { scoreSheet, category, dice } = c.req.valid('json')
-
-  // ビジネスロジック実装
-  // 選んだ役でスコアシートを更新し、ボーナス点を計算
-
-  return c.json({
-    data: {
-      scoreSheet: { /* 更新済みのスコアシート */ },
-      bonus: 0 // または 35
-    }
-  })
-})
-
-export default calculateScore
-```
-
-### Phase 5: アプリへの統合パターン
+### アプリ統合の参考パターン（Phase 5）
 ```typescript
 // src/app.ts
 import { Hono } from 'hono'
