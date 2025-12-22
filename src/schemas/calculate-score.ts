@@ -7,7 +7,7 @@ export const calculateScoreRequestSchema = z
     category: categorySchema,
     dice: fullDiceSchema,
   })
-  .refine((req) => req.scoreSheet[req.category] !== null, {
+  .refine((req) => req.scoreSheet[req.category] === null, {
     error: 'This category has already been scored',
     path: ['category'],
   })
