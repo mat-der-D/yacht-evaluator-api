@@ -12,7 +12,7 @@ type DiceSetCounts = z.infer<typeof diceSetCountsSchema>
 export type DiceSet = {
   counts: DiceSetCounts
   faces: number[]
-  toString(): string
+  hash(): string
   add(other: DiceSet): DiceSet
   subtract(other: DiceSet): DiceSet
   eq(other: DiceSet): boolean
@@ -31,7 +31,7 @@ export const createDiceSet = (arr: number[]) => {
       const result = self.counts.map((v, i) => v + other.counts[i]!)
       return createDiceSet(result)
     },
-    toString: () => self.counts.toString(),
+    hash: () => self.counts.toString(),
     subtract: (other: DiceSet) => {
       const result = self.counts.map((v, i) => v - other.counts[i]!)
       return createDiceSet(result)
@@ -70,17 +70,24 @@ const createDiceSetFromFaces = (faces: number[]) => {
   return createDiceSet(counts)
 }
 
-export type DiceSetMap<T> = {
-  set(diceSet: DiceSet, value: T): void
-  get(diceSet: DiceSet): T | undefined
-  has(diceSet: DiceSet): boolean
+type Hashable = {
+  hash(): string
 }
 
-export const createDiceSetMap = <T>(): DiceSetMap<T> => {
-  const map = new Map<string, T>()
+export type HashableMap<K extends Hashable, V> = {
+  get(key: K): V | undefined
+  set(key: K, value: V): void
+  has(key: K): boolean
+}
+
+export const createHashableMap = <K extends Hashable, V>(): HashableMap<
+  K,
+  V
+> => {
+  const map = new Map<string, V>()
   return {
-    set: (diceSet: DiceSet, value: T) => map.set(diceSet.toString(), value),
-    get: (diceSet: DiceSet) => map.get(diceSet.toString()),
-    has: (diceSet: DiceSet) => map.has(diceSet.toString()),
+    get: (key: K) => map.get(key.hash()),
+    set: (key: K, value: V) => map.set(key.hash(), value),
+    has: (key: K) => map.has(key.hash()),
   }
 }
