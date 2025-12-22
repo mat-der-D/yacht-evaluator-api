@@ -92,23 +92,42 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
     - `testCalculateScoreRoute`: 全12カテゴリのエンドポイント統合テスト
     - ボーナス有無パターンの混在テスト
 
+- 🔄 **Phase 4b/4-test (evaluate) - 準備段階**: 期待値計算システム設計 - 準備中
+  - `src/utilities/score.ts`: スコアシート全体計算 ✅ 完成
+    - `calculateScoreOfSheet`: スコアシート → 最終スコア
+    - `calculateScoreOfSheet` テスト ✅ 完成（3 pass）
+  - `src/utilities/types.ts`: ハッシュマップ基盤構築 ✅ 進行中
+    - `Hashable` インターフェース定義 ✅ 完成
+    - `HashableMap<K, V>` ジェネリック実装 ✅ 完成
+    - `DiceSet.hash()` 実装 ✅ 完成
+    - `ScoreSheet.hash()` 実装 ⏳ 次回予定
+    - `Category.hash()` 実装 ⏳ 次回予定
+  - 目的: max-ex.md の E'_3, E'_2, E'_1 を効率的に実装するための基盤
+
 - ⏳ **Phase 4-test (evaluate)**: evaluate ルートのテスト実装 - 未実装
   - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
 
 ### 次回以降の作業手順
 
-1. **Phase 4b**: evaluate ルート実装
-   - `src/routes/evaluate.ts`: /evaluate エンドポイント実装（ビジネスロジック）
-   - 合法手の列挙と評価値計算ロジック
+1. **Phase 4b/4-test (evaluate) - 準備完成**
+   - `ScoreSheet.hash()` 実装
+   - `Category.hash()` 実装
+   - E3PrimeMap 型定義
 
-2. **Phase 4-test (evaluate)**: evaluate ルートのテスト実装
+2. **Phase 4b**: evaluate ルート実装（ビジネスロジック）
+   - TDD を活用して段階的に実装
+   - max-ex.md に基づき E'_3 → E_3 → E'_2 → E_2 → E'_1 → E_1 の順で実装
+   - 中間値のテストと確率的性質の検証
+
+3. **Phase 4-test (evaluate)**: evaluate エンドポイントテスト実装
    - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
+   - 計算済みデータとの整合性検証
 
-3. **Phase 5**: アプリ統合
+4. **Phase 5**: アプリ統合
    - `src/app.ts` でルート（evaluate, calculate-score）をマウント
    - ヘルスチェック等の共通エンドポイント
 
-4. **拡張**: エラーハンドリング改善（オプション）
+5. **拡張**: エラーハンドリング改善（オプション）
    - `zValidator` のカスタムエラーハンドリング
    - エラーレスポンスに key 情報を追加
 
