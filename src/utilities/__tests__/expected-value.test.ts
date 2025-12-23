@@ -113,7 +113,6 @@ const testE3 = (
       const value = e3.get(scoreSheet, dice)
       expect(value).toBeCloseTo(answer)
     }
-    //
   })
 }
 
