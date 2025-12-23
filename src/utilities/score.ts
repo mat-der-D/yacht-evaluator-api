@@ -10,7 +10,9 @@ export const calculateScoreOfSheet = (scoreSheet: ScoreSheet): number => {
   return baseScore + bonus
 }
 
-export const calculateBonus = (scoreSheet: ScoreSheet): 0 | 35 => {
+export const calculateNumberCategoryScore = (
+  scoreSheet: ScoreSheet
+): number => {
   const numberCategories: Category[] = [
     'ace',
     'deuce',
@@ -19,12 +21,14 @@ export const calculateBonus = (scoreSheet: ScoreSheet): 0 | 35 => {
     'five',
     'six',
   ]
-  const numberCategoryScore: number = numberCategories.reduce(
+  return numberCategories.reduce(
     (sum, category) => sum + (scoreSheet[category] ?? 0),
     0
   )
-  return numberCategoryScore >= 63 ? 35 : 0
 }
+
+export const calculateBonus = (scoreSheet: ScoreSheet): 0 | 35 =>
+  calculateNumberCategoryScore(scoreSheet) >= 63 ? 35 : 0
 
 export const calculateScore = (category: Category, dice: FullDice) => {
   const diceSet: DiceSet = createDiceSetFromFullDice(dice)
