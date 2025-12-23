@@ -138,15 +138,14 @@ const testConsistencyOfE = (
     const probTable = createProbTable()
     const diceTable = createDiceTable()
     const e = await createEFromBinary(binaryFilePath)
+    const e3Prime = createE3Prime(e)
+    const e3 = createE3(e3Prime)
+    const e2Prime = createE2Prime(e3, probTable, diceTable)
+    const e2 = createE2(e2Prime, diceTable)
+    const e1Prime = createE1Prime(e2, probTable, diceTable)
+    const e1 = createE1(e1Prime, diceTable)
 
     for (const scoreSheet of testCases) {
-      const e3Prime = createE3Prime(e)
-      const e3 = createE3(e3Prime)
-      const e2Prime = createE2Prime(e3, probTable, diceTable)
-      const e2 = createE2(e2Prime, diceTable)
-      const e1Prime = createE1Prime(e2, probTable, diceTable)
-      const e1 = createE1(e1Prime, diceTable)
-
       const calculatedValue = diceTable.fullDices.reduce((exp, d) => {
         const prob = probTable.get(d)
         const e1Value = e1.get(scoreSheet, d)
