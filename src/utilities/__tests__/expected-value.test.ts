@@ -210,7 +210,7 @@ testLoadedEData(binaryFilePath, [
   [createScoreSheetExcept('choice'), 23.333],
   [createScoreSheetExcept('fourOfAKind'), 5.61126],
   [createScoreSheetExcept('fullHouse'), 7.01355],
-  [createScoreSheetExcept('smallStraight'), 7.83285],
-  [createScoreSheetExcept('bigStraight'), 9.23163],
+  [createScoreSheetExcept('smallStraight'), 9.23163],
+  [createScoreSheetExcept('bigStraight'), 7.83285],
   [createScoreSheetExcept('yacht'), 2.30143],
 ])
