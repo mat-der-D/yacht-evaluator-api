@@ -38,43 +38,56 @@ export const createDiceTable = (): DiceTable => {
 const gatherSuperDices = (dice: DiceSet): DiceSet[] => {
   const totalCount = dice.counts.reduce((sum, val) => sum + val, 0)
   const residual = 5 - totalCount
-  const superDices = []
-  for (let c1 = 0; c1 <= residual; c1++) {
-    for (let c2 = 0; c2 <= residual - c1; c2++) {
-      for (let c3 = 0; c3 <= residual - c1 - c2; c3++) {
-        for (let c4 = 0; c4 <= residual - c1 - c2 - c3; c4++) {
-          for (let c5 = 0; c5 <= residual - c1 - c2 - c3 - c4; c5++) {
-            const c6 = residual - c1 - c2 - c3 - c4 - c5
-            const counts = [c1, c2, c3, c4, c5, c6]
-            const superDice = createDiceSet(counts)
-            superDices.push(superDice)
-          }
-        }
-      }
-    }
-  }
-
+  const superDices: DiceSet[] = []
+  gatherSuperDicesRecursive(dice, [0, 0, 0, 0, 0, 0], 0, superDices, residual)
   return superDices
 }
 
-const gatherSubDices = (dice: DiceSet): DiceSet[] => {
-  const subDices = []
-
-  for (let c1 = 0; c1 <= dice.counts[0]!; c1++) {
-    for (let c2 = 0; c2 <= dice.counts[1]!; c2++) {
-      for (let c3 = 0; c3 <= dice.counts[2]!; c3++) {
-        for (let c4 = 0; c4 <= dice.counts[3]!; c4++) {
-          for (let c5 = 0; c5 <= dice.counts[4]!; c5++) {
-            for (let c6 = 0; c6 <= dice.counts[5]!; c6++) {
-              const counts = [c1, c2, c3, c4, c5, c6]
-              const subDice = createDiceSet(counts)
-              subDices.push(subDice)
-            }
-          }
-        }
-      }
-    }
+const gatherSuperDicesRecursive = (
+  dice: DiceSet,
+  counts: number[],
+  index: number,
+  superDices: DiceSet[],
+  residual: number
+) => {
+  if (index === 5) {
+    counts[5] = residual
+    const residualDice = createDiceSet(counts)
+    const superDice = dice.add(residualDice)
+    superDices.push(superDice)
+    return
   }
 
+  for (let count = 0; count <= residual; count++) {
+    gatherSuperDicesRecursive(
+      dice,
+      counts,
+      index + 1,
+      superDices,
+      residual - count
+    )
+  }
+}
+
+const gatherSubDices = (dice: DiceSet): DiceSet[] => {
+  const subDices: DiceSet[] = []
+  gatherSubDicesRecursive(dice, [0, 0, 0, 0, 0, 0], 0, subDices)
   return subDices
+}
+
+const gatherSubDicesRecursive = (
+  dice: DiceSet,
+  counts: number[],
+  index: number,
+  subDices: DiceSet[]
+) => {
+  if (index === 6) {
+    const subDice = createDiceSet(counts)
+    subDices.push(subDice)
+    return
+  }
+
+  for (let count = 0; count <= dice.counts[index]!; count++) {
+    gatherSubDicesRecursive(dice, counts, index + 1, subDices)
+  }
 }
