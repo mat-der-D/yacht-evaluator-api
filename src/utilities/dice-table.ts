@@ -7,7 +7,6 @@ import {
 
 export type DiceTable = {
   fullDices: DiceSet[]
-  partialDices: DiceSet[]
   getSuperDices(dice: DiceSet): DiceSet[]
   getSubDices(dice: DiceSet): DiceSet[]
 }
@@ -17,7 +16,6 @@ export const createDiceTable = (): DiceTable => {
   const fullToPartial: HashableMap<DiceSet, DiceSet[]> = createHashableMap()
   return {
     fullDices: gatherSuperDices(createDiceSet([0, 0, 0, 0, 0, 0])),
-    partialDices: gatherAllDices(),
     getSuperDices: (dice: DiceSet) => {
       const cachedValue = partialToFull.get(dice)
       if (cachedValue !== undefined) {
@@ -94,29 +92,5 @@ const gatherSubDicesRecursive = (
 
   for (let count = 0; count <= dice.counts[index]!; count++) {
     gatherSubDicesRecursive(dice, counts, index + 1, subDices)
-  }
-}
-
-const gatherAllDices = (): DiceSet[] => {
-  const allDices: DiceSet[] = []
-  gatherAllDicesRecursive([0, 0, 0, 0, 0, 0], 0, allDices, 5)
-  return allDices
-}
-
-const gatherAllDicesRecursive = (
-  counts: number[],
-  index: number,
-  allDices: DiceSet[],
-  residual: number
-) => {
-  if (index === 6) {
-    const dice = createDiceSet(counts)
-    allDices.push(dice)
-    return
-  }
-
-  for (let count = 0; count <= residual; count++) {
-    counts[index] = count
-    gatherAllDicesRecursive(counts, index + 1, allDices, residual - count)
   }
 }
