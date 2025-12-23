@@ -91,7 +91,7 @@ const hasFiveDice = (dice: DiceSet): boolean =>
   dice.counts.reduce((sum, val) => sum + val, 0) == 5
 
 const sumOfFaces = (dice: DiceSet): number =>
-  dice.faces.reduce((sum, face) => sum + face)
+  dice.faces.reduce((sum, face) => sum + face, 0)
 
 const maxConsecutive = (dice: DiceSet): number => {
   let current = 0
