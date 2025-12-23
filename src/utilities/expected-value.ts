@@ -7,6 +7,7 @@ import {
   calculateNumberCategoryScoreSum,
   calculateScore,
 } from './score'
+import { categorySchema } from '../schemas'
 
 export type E3Prime = {
   get: (
@@ -73,6 +74,41 @@ export const createE3Prime = (e: E): E3Prime => {
 
 export type E3 = {
   get: (scoreSheet: ScoreSheet, dice: DiceSet) => number
+}
+
+type E3Key = {
+  scoreSheet: ScoreSheet
+  dice: DiceSet
+  hash(): string
+}
+
+const createE3Key = (scoreSheet: ScoreSheet, dice: DiceSet) => {
+  const stateId = getStateId(scoreSheet)
+  return {
+    scoreSheet,
+    dice,
+    hash: () => stateId.toString() + '|' + dice.counts.toString(),
+  }
+}
+
+const createE3 = (e3Prime: E3Prime) => {
+  const cache: HashableMap<E3Key, number> = createHashableMap()
+  return {
+    get: (scoreSheet: ScoreSheet, dice: DiceSet) => {
+      const key = createE3Key(scoreSheet, dice)
+
+      if (!cache.has(key)) {
+        const value = Math.max(
+          ...categorySchema.options.map(
+            (category) => e3Prime.get(scoreSheet, dice, category) ?? 0
+          )
+        )
+        cache.set(key, value)
+      }
+
+      return cache.get(key)
+    },
+  }
 }
 
 export type E2Prime = {
