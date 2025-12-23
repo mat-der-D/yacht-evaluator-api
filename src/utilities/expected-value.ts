@@ -207,7 +207,7 @@ const loadYachtEvalData = async (filePath: string): Promise<Float64Array> => {
   // Checksum 検証
   const dataBuffer = buffer.subarray(32, 32 + dataCount * 8)
   const calculatedChecksum = crc32.buf(dataBuffer) >>> 0
-  if (calculatedChecksum != expectedChecksum) {
+  if (calculatedChecksum !== expectedChecksum) {
     throw new Error(
       `Checksum mismatch: expected ${expectedChecksum}, got ${calculatedChecksum}`
     )
