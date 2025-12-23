@@ -34,11 +34,7 @@ const createE3PrimeKey = (
     dice,
     category,
     hash: () =>
-      getStateId(scoreSheet).toString() +
-      '|' +
-      dice.counts.toString() +
-      '|' +
-      category,
+      getStateId(scoreSheet).toString() + '|' + dice.hash() + '|' + category,
   }
 }
 
@@ -89,7 +85,7 @@ const createE3Key = (scoreSheet: ScoreSheet, dice: DiceSet) => {
   return {
     scoreSheet,
     dice,
-    hash: () => stateId.toString() + '|' + dice.counts.toString(),
+    hash: () => stateId.toString() + '|' + dice.hash(),
   }
 }
 
