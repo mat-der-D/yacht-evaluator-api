@@ -113,7 +113,7 @@ export const createE3 = (e3Prime: E3Prime): E3 => {
   }
 }
 
-export type EnPrime = {
+type EnPrime = {
   get: (scoreSheet: ScoreSheet, partialDice: DiceSet) => number
 }
 
@@ -140,7 +140,7 @@ const createEnPrime = (en: En, probTable: ProbTable, diceTable: DiceTable) => {
   }
 }
 
-export type En = {
+type En = {
   get: (scoreSheet: ScoreSheet, dice: DiceSet) => number
 }
 
