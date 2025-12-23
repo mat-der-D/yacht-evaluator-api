@@ -183,3 +183,34 @@ testConsistencyOfE(binaryFilePath, [
     yacht: 50,
   },
 ])
+
+const testLoadedEData = (
+  binaryFilePath: string,
+  testCases: [ScoreSheet, number][]
+) => {
+  const testName = 'Test for lodaded E'
+  test(testName, async () => {
+    const e = await createEFromBinary(binaryFilePath)
+    for (const [scoreSheet, answer] of testCases) {
+      const value = e.get(scoreSheet)
+      expect(value).toBeCloseTo(answer)
+    }
+  })
+}
+
+testLoadedEData(binaryFilePath, [
+  [createScoreSheet({}), 191.77],
+  [createScoreSheetExceptMany([]), 0.0],
+  [createScoreSheetExcept('ace'), 2.10648],
+  [createScoreSheetExcept('deuce'), 4.21296],
+  [createScoreSheetExcept('trey'), 6.31944],
+  [createScoreSheetExcept('four'), 8.42592],
+  [createScoreSheetExcept('five'), 10.5324],
+  [createScoreSheetExcept('six'), 12.63888],
+  [createScoreSheetExcept('choice'), 23.333],
+  [createScoreSheetExcept('fourOfAKind'), 5.61126],
+  [createScoreSheetExcept('fullHouse'), 7.01355],
+  [createScoreSheetExcept('smallStraight'), 7.83285],
+  [createScoreSheetExcept('bigStraight'), 9.23163],
+  [createScoreSheetExcept('yacht'), 2.30143],
+])
