@@ -1,8 +1,18 @@
 import { test, expect } from 'bun:test'
 import type { Category, FullDice, ScoreSheet } from '../../types'
-import { createE3, createE3Prime, createEFromBinary } from '../expected-value'
+import {
+  createE1,
+  createE1Prime,
+  createE2,
+  createE2Prime,
+  createE3,
+  createE3Prime,
+  createEFromBinary,
+} from '../expected-value'
 import { createDiceSetFromFullDice } from '../types'
 import { categorySchema } from '../../schemas'
+import { createProbTable } from '../probability'
+import { createDiceTable } from '../dice-table'
 
 const fullScoreSheet: ScoreSheet = Object.fromEntries(
   categorySchema.options.map((category) => [category, 0])
@@ -23,6 +33,17 @@ const createScoreSheetExceptMany = (except: Category[]): ScoreSheet => {
     scoreSheet[category] = null
   }
   return scoreSheet
+}
+
+const emptyScoreSheet: ScoreSheet = Object.fromEntries(
+  categorySchema.options.map((category) => [category, null])
+) as ScoreSheet
+
+const createScoreSheet = (overrides: Partial<ScoreSheet>): ScoreSheet => {
+  return {
+    ...emptyScoreSheet,
+    ...overrides,
+  }
 }
 
 const testE3Prime = (
@@ -107,4 +128,58 @@ testE3('two choice left', binaryFilePath, [
     [6, 6, 6, 6, 6],
     [`yacht`, 'choice'],
   ],
+])
+
+const testConsistencyOfE = (
+  binaryFilePath: string,
+  testCases: ScoreSheet[]
+) => {
+  test('Test consistency of E', async () => {
+    const probTable = createProbTable()
+    const diceTable = createDiceTable()
+    const e = await createEFromBinary(binaryFilePath)
+
+    for (const scoreSheet of testCases) {
+      const e3Prime = createE3Prime(e)
+      const e3 = createE3(e3Prime)
+      const e2Prime = createE2Prime(e3, probTable, diceTable)
+      const e2 = createE2(e2Prime, diceTable)
+      const e1Prime = createE1Prime(e2, probTable, diceTable)
+      const e1 = createE1(e1Prime, diceTable)
+
+      const calculatedValue = Math.max(
+        ...diceTable.fullDices.map((dice) => e1.get(scoreSheet, dice))
+      )
+
+      const answer = e.get(scoreSheet) // 計算済みデータ
+
+      expect(calculatedValue).toBeCloseTo(answer)
+    }
+  })
+}
+
+testConsistencyOfE(binaryFilePath, [
+  createScoreSheet({}),
+  createScoreSheet({ ace: 3 }),
+  createScoreSheet({ five: 0, six: 30 }),
+  createScoreSheet({
+    choice: 15,
+    yacht: 50,
+    smallStraight: 15,
+    bigStraight: 30,
+  }),
+  {
+    ace: 5,
+    deuce: 10,
+    trey: 15,
+    four: 20,
+    five: 25,
+    six: 30,
+    choice: 30,
+    fourOfAKind: 30,
+    fullHouse: 30,
+    smallStraight: 15,
+    bigStraight: 30,
+    yacht: 50,
+  },
 ])
