@@ -1,7 +1,7 @@
 import * as fs from 'fs/promises'
 import * as crc32 from 'crc-32'
 import type { Category, ScoreSheet } from '../types'
-import { type DiceSet } from './types'
+import { createHashableMap, type DiceSet, type HashableMap } from './types'
 import {
   calculateBonus,
   calculateNumberCategoryScoreSum,
@@ -16,7 +16,33 @@ export type E3Prime = {
   ) => number | undefined
 }
 
+type E3PrimeKey = {
+  scoreSheet: ScoreSheet
+  dice: DiceSet
+  category: Category
+  hash(): string
+}
+
+const createE3PrimeKey = (
+  scoreSheet: ScoreSheet,
+  dice: DiceSet,
+  category: Category
+): E3PrimeKey => {
+  return {
+    scoreSheet,
+    dice,
+    category,
+    hash: () =>
+      getStateId(scoreSheet).toString() +
+      '|' +
+      dice.counts.toString() +
+      '|' +
+      category,
+  }
+}
+
 export const createE3Prime = (e: E): E3Prime => {
+  const cache: HashableMap<E3PrimeKey, number> = createHashableMap()
   return {
     get: (
       scoreSheet: ScoreSheet,
@@ -26,15 +52,21 @@ export const createE3Prime = (e: E): E3Prime => {
       if (scoreSheet[category] !== null) {
         return undefined
       }
+      const key = createE3PrimeKey(scoreSheet, dice, category)
 
-      const bonus = calculateBonus(scoreSheet)
-      const score = calculateScore(category, dice)
-      const newScoreSheet = {
-        ...scoreSheet,
-        [category]: score,
+      if (!cache.has(key)) {
+        const bonus = calculateBonus(scoreSheet)
+        const score = calculateScore(category, dice)
+        const newScoreSheet = {
+          ...scoreSheet,
+          [category]: score,
+        }
+        const newBonus = calculateBonus(newScoreSheet)
+        const value = e.get(newScoreSheet) + score + newBonus - bonus
+        cache.set(key, value)
       }
-      const newBonus = calculateBonus(newScoreSheet)
-      return e.get(newScoreSheet) + score + newBonus - bonus
+
+      return cache.get(key)
     },
   }
 }
@@ -103,10 +135,14 @@ const getExpectedValue = (
   expectedValues: Float64Array,
   scoreSheet: ScoreSheet
 ): number => {
+  const stateId = getStateId(scoreSheet)
+  return expectedValues[stateId]!
+}
+
+const getStateId = (scoreSheet: ScoreSheet): number => {
   const domBits = getDomBits(scoreSheet)
   const nu = Math.min(63, calculateNumberCategoryScoreSum(scoreSheet))
-  const stateId = (domBits << 6) | nu
-  return expectedValues[stateId]!
+  return (domBits << 6) | nu
 }
 
 const getDomBits = (scoreSheet: ScoreSheet): number => {
