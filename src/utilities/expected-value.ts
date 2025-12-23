@@ -9,12 +9,24 @@ import {
 } from './score'
 
 export type E3Prime = {
-  get: (scoreSheet: ScoreSheet, dice: DiceSet, category: Category) => number
+  get: (
+    scoreSheet: ScoreSheet,
+    dice: DiceSet,
+    category: Category
+  ) => number | undefined
 }
 
 export const createE3Prime = (e: E): E3Prime => {
   return {
-    get: (scoreSheet: ScoreSheet, dice: DiceSet, category: Category) => {
+    get: (
+      scoreSheet: ScoreSheet,
+      dice: DiceSet,
+      category: Category
+    ): number | undefined => {
+      if (scoreSheet[category] !== null) {
+        return undefined
+      }
+
       const bonus = calculateBonus(scoreSheet)
       const score = calculateScore(category, dice)
       const newScoreSheet = {

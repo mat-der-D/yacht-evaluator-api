@@ -18,7 +18,7 @@ const createScoreSheetExcept = (except: Category): ScoreSheet => {
 const testE3Prime = (
   tag: string,
   binaryFilePath: string,
-  testCases: [ScoreSheet, FullDice, Category, number][]
+  testCases: [ScoreSheet, FullDice, Category, number | undefined][]
 ) => {
   const testName = `E3Prime: ${tag}`
   test(testName, async () => {
@@ -27,12 +27,19 @@ const testE3Prime = (
     for (const [scoreSheet, fullDice, category, answer] of testCases) {
       const dice = createDiceSetFromFullDice(fullDice)
       const e3PrimeValue = e3Prime.get(scoreSheet, dice, category)
-      expect(e3PrimeValue).toBeCloseTo(answer)
+      if (e3PrimeValue === undefined) {
+        expect(answer).toBeUndefined()
+      } else {
+        expect(answer).not.toBeUndefined()
+        expect(e3PrimeValue).toBeCloseTo(answer ?? 0)
+      }
     }
   })
 }
 
-testE3Prime('11th turn test', 'data/yacht_exp.bin', [
+const binaryFilePath = 'data/yacht_exp.bin'
+
+testE3Prime('11th turn test', binaryFilePath, [
   [createScoreSheetExcept('ace'), [1, 2, 5, 1, 2], 'ace', 2],
   [createScoreSheetExcept('deuce'), [1, 2, 5, 1, 2], 'deuce', 4],
   [createScoreSheetExcept('trey'), [2, 5, 1, 5, 6], 'trey', 0],
@@ -49,4 +56,9 @@ testE3Prime('11th turn test', 'data/yacht_exp.bin', [
   ],
   [createScoreSheetExcept('bigStraight'), [1, 2, 3, 4, 5], 'bigStraight', 30],
   [createScoreSheetExcept('yacht'), [1, 1, 1, 1, 1], 'yacht', 50],
+])
+
+testE3Prime('already filled test', binaryFilePath, [
+  [fullScoreSheet, [1, 2, 3, 4, 5], 'ace', undefined],
+  [fullScoreSheet, [6, 6, 6, 6, 6], 'six', undefined],
 ])
