@@ -2,6 +2,7 @@ import { test, expect } from 'bun:test'
 import { categorySchema, fullDiceSchema, scoreSheetSchema } from '../../schemas'
 import { calculateBonus, calculateScore, calculateScoreOfSheet } from '../score'
 import type { ScoreSheet } from '../../types'
+import { createDiceSetFromFullDice } from '../types'
 
 const emptyScoreSheet: ScoreSheet = Object.fromEntries(
   categorySchema.options.map((category) => [category, null])
@@ -41,7 +42,8 @@ const testCalculateScore = (
     const category = categorySchema.parse(categoryName)
     for (const [rawDice, answer] of testCases) {
       const dice = fullDiceSchema.parse(rawDice)
-      const score = calculateScore(category, dice)
+      const diceSet = createDiceSetFromFullDice(dice)
+      const score = calculateScore(category, diceSet)
       expect(score).toBe(answer)
     }
   })

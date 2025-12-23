@@ -68,7 +68,7 @@ const createDiceSetFromFaces = (faces: number[]) => {
   return createDiceSet(counts)
 }
 
-type Hashable = {
+export type Hashable = {
   hash(): string
 }
 

@@ -1,6 +1,6 @@
 import { test, expect } from 'bun:test'
 import type { Category, FullDice, ScoreSheet } from '../../types'
-import { createE3Prime } from '../expected-value'
+import { createE3Prime, createEFromBinary } from '../expected-value'
 import { createDiceSetFromFullDice } from '../types'
 import { categorySchema } from '../../schemas'
 
@@ -17,11 +17,13 @@ const createScoreSheetExcept = (except: Category): ScoreSheet => {
 
 const testE3Prime = (
   tag: string,
+  binaryFilePath: string,
   testCases: [ScoreSheet, FullDice, Category, number][]
 ) => {
   const testName = `E3Prime: ${tag}`
-  test(testName, () => {
-    const e3Prime = createE3Prime()
+  test(testName, async () => {
+    const e = await createEFromBinary(binaryFilePath)
+    const e3Prime = createE3Prime(e)
     for (const [scoreSheet, fullDice, category, answer] of testCases) {
       const dice = createDiceSetFromFullDice(fullDice)
       const e3PrimeValue = e3Prime.get(scoreSheet, dice, category)
@@ -30,7 +32,7 @@ const testE3Prime = (
   })
 }
 
-testE3Prime('11th turn test', [
+testE3Prime('11th turn test', 'data/yacht_exp.bin', [
   [createScoreSheetExcept('ace'), [1, 2, 5, 1, 2], 'ace', 3],
   [createScoreSheetExcept('deuce'), [1, 2, 5, 1, 2], 'deuce', 4],
   [createScoreSheetExcept('trey'), [2, 5, 1, 5, 6], 'trey', 0],

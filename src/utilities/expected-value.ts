@@ -1,16 +1,23 @@
 import * as fs from 'fs/promises'
 import * as crc32 from 'crc-32'
 import type { Category, ScoreSheet } from '../types'
-import type { DiceSet } from './types'
-import { calculateNumberCategoryScore } from './score'
+import { type DiceSet } from './types'
+import { calculateNumberCategoryScoreSum, calculateScore } from './score'
 
 export type E3Prime = {
   get: (scoreSheet: ScoreSheet, dice: DiceSet, category: Category) => number
 }
 
-export const createE3Prime = (): E3Prime => {
+export const createE3Prime = (e: E): E3Prime => {
   return {
-    get: (scoreSheet, dice, category) => 0.0,
+    get: (scoreSheet: ScoreSheet, dice: DiceSet, category: Category) => {
+      const score = calculateScore(category, dice)
+      const newScoreSheet = {
+        ...scoreSheet,
+        [category]: score,
+      }
+      return e.get(newScoreSheet)
+    },
   }
 }
 
@@ -52,7 +59,7 @@ const loadYachtEvalData = async (filePath: string): Promise<Float64Array> => {
 
   // Header 検証
   const magic = new TextDecoder().decode(buffer.subarray(0, 10))
-  if (magic !== 'YACHT_EVAL\0') {
+  if (magic !== 'YACHT_EVAL') {
     throw new Error(`Invalid magic: ${magic}`)
   }
 
@@ -79,7 +86,7 @@ const getExpectedValue = (
   scoreSheet: ScoreSheet
 ): number => {
   const domBits = getDomBits(scoreSheet)
-  const nu = Math.min(63, calculateNumberCategoryScore(scoreSheet))
+  const nu = Math.min(63, calculateNumberCategoryScoreSum(scoreSheet))
   const stateId = (domBits << 6) | nu
   return expectedValues[stateId]!
 }

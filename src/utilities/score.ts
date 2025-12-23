@@ -1,5 +1,5 @@
-import type { Category, FullDice, ScoreSheet } from '../types'
-import { createDiceSetFromFullDice, type DiceSet } from './types'
+import type { Category, ScoreSheet } from '../types'
+import { type DiceSet } from './types'
 
 export const calculateScoreOfSheet = (scoreSheet: ScoreSheet): number => {
   const baseScore = Object.values(scoreSheet).reduce(
@@ -10,7 +10,7 @@ export const calculateScoreOfSheet = (scoreSheet: ScoreSheet): number => {
   return baseScore + bonus
 }
 
-export const calculateNumberCategoryScore = (
+export const calculateNumberCategoryScoreSum = (
   scoreSheet: ScoreSheet
 ): number => {
   const numberCategories: Category[] = [
@@ -28,11 +28,10 @@ export const calculateNumberCategoryScore = (
 }
 
 export const calculateBonus = (scoreSheet: ScoreSheet): 0 | 35 =>
-  calculateNumberCategoryScore(scoreSheet) >= 63 ? 35 : 0
+  calculateNumberCategoryScoreSum(scoreSheet) >= 63 ? 35 : 0
 
-export const calculateScore = (category: Category, dice: FullDice) => {
-  const diceSet: DiceSet = createDiceSetFromFullDice(dice)
-  return scoreCalculators[category](diceSet)
+export const calculateScore = (category: Category, dice: DiceSet) => {
+  return scoreCalculators[category](dice)
 }
 
 type ScoreCalculator = (dice: DiceSet) => number
