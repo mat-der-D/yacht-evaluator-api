@@ -113,39 +113,45 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
     - 全6400通りのサイコロ組み合わせをプリコンピュート
     - 効率的な期待値計算のための基盤データ
     - `src/utilities/__tests__/dice-table.test.ts`: テスト ✅ 完成
-  - `src/utilities/expected-value.ts`: 期待値計算（E'\_3, E_3 等） 🔄 実装中
-    - `createE3Prime(e)`: 最後のロールの期待値計算キャッシュ機構
-    - max-ex.md に基づく E'\_3 → E_3 → E'\_2 → E_2 → E'\_1 → E_1 の段階的実装
-    - `src/utilities/__tests__/expected-value.test.ts`: テスト 🔄 実装中
-  - 目的: 局面評価を効率的に計算するための核となるシステム
+  - `src/utilities/expected-value.ts`: 期待値計算（E'\_3 → E_1） ✅ 完成
+    - `createE3Prime(e)`: 最後のロールの期待値計算キャッシュ機構 ✅ 完成
+    - `createE3(e3Prime)`: 3ロール目の最適選択 ✅ 完成
+    - `createE2Prime/createE2`: 2ロール目の期待値と最適選択 ✅ 完成
+    - `createE1Prime/createE1`: 初ロール後の期待値と最適選択 ✅ 完成
+    - max-ex.md に基づく E'\_3 → E_3 → E'\_2 → E_2 → E'\_1 → E_1 の全実装完了 ✅
+    - バイナリ形式の期待値データ読み込み（`createEFromBinary`） ✅ 完成
+    - `src/utilities/__tests__/expected-value.test.ts`: テスト ✅ 完成
+  - 目的: 局面評価を効率的に計算するための核となるシステム ✅ 達成
 
 - ✅ **Phase 5**: アプリ統合 - 完成
   - `src/app.ts` でルート（evaluate, calculate-score）をマウント ✅ 完成
   - ヘルスチェック等の共通エンドポイント ✅ 実装
 
-- 🔄 **Phase 4b (evaluate ルート)**: evaluate エンドポイント実装 - 実装中
+- 🔄 **Phase 4b (evaluate ルート)**: evaluate エンドポイント実装 - 準備完了
   - `src/routes/evaluate.ts`: /evaluate エンドポイント 🔄 スケルトン実装済み
-  - ビジネスロジック（期待値計算、合法手評価）の実装待ち
+  - 期待値計算システム（E1 まで完成） ✅ 利用可能
+  - ビジネスロジック実装待ち：期待値計算、合法手評価、選択肢排列
 
 - ⏳ **Phase 4-test (evaluate)**: evaluate ルートのテスト実装 - 未実装
   - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
 
 ### 次回以降の作業手順
 
-1. **Phase 4b/4-test (evaluate) - 期待値計算完成**
-   - `expected-value.ts` で E'\_3 から E_1 までの期待値計算実装完了
-   - キャッシュ機構を活用した効率的な状態遷移
+1. **Phase 4b**: evaluate ルート実装（ビジネスロジック） 🔄 次のステップ
+   - 期待値計算システム（E'\_3 → E_1）の実装は完了 ✅
+   - evaluate エンドポイントで以下を実装:
+     - 入力の scoreSheet, dice, rollCount をバリデーション
+     - rollCount に応じた適切な期待値計算関数を選択（E1, E2, E3）
+     - 合法手を列挙し、各選択肢の期待値を計算
+     - 期待値の高い順にソートして応答
+   - スケルトン実装済み（`src/routes/evaluate.ts`）
 
-2. **Phase 4b**: evaluate ルート実装（ビジネスロジック）
-   - TDD を活用して段階的に実装
-   - max-ex.md に基づき E'\_3 → E_3 → E'\_2 → E_2 → E'\_1 → E_1 の順で実装
-   - 中間値のテストと確率的性質の検証
-
-3. **Phase 4-test (evaluate)**: evaluate エンドポイントテスト実装
+2. **Phase 4-test (evaluate)**: evaluate エンドポイントテスト実装
    - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
-   - 計算済みデータとの整合性検証
+   - 期待値計算の正確性検証
+   - エッジケースのテスト（スコアシート満杯時など）
 
-4. **拡張**: エラーハンドリング改善（オプション）
+3. **拡張**: エラーハンドリング改善（オプション）
    - `zValidator` のカスタムエラーハンドリング
    - エラーレスポンスに key 情報を追加
 
