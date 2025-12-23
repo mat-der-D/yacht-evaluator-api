@@ -49,3 +49,9 @@ testGetSubDices('simple', [
   [[1, 1, 1, 1, 1], 6],
   [[1, 2, 3, 4, 5], 2 ** 5],
 ])
+
+test('Test fullDices & partialDices', () => {
+  const diceTable = createDiceTable()
+  expect(diceTable.fullDices.length).toBe(252)
+  expect(diceTable.partialDices.length).toBe(462)
+})
