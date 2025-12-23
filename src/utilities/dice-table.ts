@@ -44,7 +44,7 @@ const gatherSuperDices = (dice: DiceSet): DiceSet[] => {
 }
 
 const gatherSuperDicesRecursive = (
-  dice: DiceSet,
+  base: DiceSet,
   counts: number[],
   index: number,
   superDices: DiceSet[],
@@ -53,14 +53,15 @@ const gatherSuperDicesRecursive = (
   if (index === 5) {
     counts[5] = residual
     const residualDice = createDiceSet(counts)
-    const superDice = dice.add(residualDice)
+    const superDice = base.add(residualDice)
     superDices.push(superDice)
     return
   }
 
   for (let count = 0; count <= residual; count++) {
+    counts[index] = count
     gatherSuperDicesRecursive(
-      dice,
+      base,
       counts,
       index + 1,
       superDices,
