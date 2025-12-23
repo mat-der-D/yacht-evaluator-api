@@ -2,7 +2,11 @@ import * as fs from 'fs/promises'
 import * as crc32 from 'crc-32'
 import type { Category, ScoreSheet } from '../types'
 import { type DiceSet } from './types'
-import { calculateNumberCategoryScoreSum, calculateScore } from './score'
+import {
+  calculateBonus,
+  calculateNumberCategoryScoreSum,
+  calculateScore,
+} from './score'
 
 export type E3Prime = {
   get: (scoreSheet: ScoreSheet, dice: DiceSet, category: Category) => number
@@ -11,12 +15,14 @@ export type E3Prime = {
 export const createE3Prime = (e: E): E3Prime => {
   return {
     get: (scoreSheet: ScoreSheet, dice: DiceSet, category: Category) => {
+      const bonus = calculateBonus(scoreSheet)
       const score = calculateScore(category, dice)
       const newScoreSheet = {
         ...scoreSheet,
         [category]: score,
       }
-      return e.get(newScoreSheet)
+      const newBonus = calculateBonus(newScoreSheet)
+      return e.get(newScoreSheet) + score + newBonus - bonus
     },
   }
 }

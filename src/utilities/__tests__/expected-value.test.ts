@@ -33,7 +33,7 @@ const testE3Prime = (
 }
 
 testE3Prime('11th turn test', 'data/yacht_exp.bin', [
-  [createScoreSheetExcept('ace'), [1, 2, 5, 1, 2], 'ace', 3],
+  [createScoreSheetExcept('ace'), [1, 2, 5, 1, 2], 'ace', 2],
   [createScoreSheetExcept('deuce'), [1, 2, 5, 1, 2], 'deuce', 4],
   [createScoreSheetExcept('trey'), [2, 5, 1, 5, 6], 'trey', 0],
   [createScoreSheetExcept('four'), [4, 4, 4, 5, 4], 'four', 16],
