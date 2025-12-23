@@ -31,6 +31,10 @@ export type E1 = {
   get: (scoreSheet: ScoreSheet, dice: DiceSet) => number
 }
 
-type E = {
+export type E = {
   get: (scoreSheet: ScoreSheet) => number
+}
+
+export const createEFromBinary = (path: string): E => {
+  // TODO: 実装を与える
 }
