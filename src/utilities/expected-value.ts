@@ -8,6 +8,8 @@ import {
   calculateScore,
 } from './score'
 import { categorySchema } from '../schemas'
+import type { DiceTable } from './dice-table'
+import type { ProbTable } from './probability'
 
 export type E3Prime = {
   get: (
@@ -74,13 +76,13 @@ export type E3 = {
   get: (scoreSheet: ScoreSheet, dice: DiceSet) => number
 }
 
-type E3Key = {
+type ScoreDiceKey = {
   scoreSheet: ScoreSheet
   dice: DiceSet
   hash(): string
 }
 
-const createE3Key = (scoreSheet: ScoreSheet, dice: DiceSet) => {
+const createScoreDiceKey = (scoreSheet: ScoreSheet, dice: DiceSet) => {
   const stateId = getStateId(scoreSheet)
   return {
     scoreSheet,
@@ -90,10 +92,10 @@ const createE3Key = (scoreSheet: ScoreSheet, dice: DiceSet) => {
 }
 
 export const createE3 = (e3Prime: E3Prime): E3 => {
-  const cache: HashableMap<E3Key, number> = createHashableMap()
+  const cache: HashableMap<ScoreDiceKey, number> = createHashableMap()
   return {
     get: (scoreSheet: ScoreSheet, dice: DiceSet) => {
-      const key = createE3Key(scoreSheet, dice)
+      const key = createScoreDiceKey(scoreSheet, dice)
 
       const cachedValue = cache.get(key)
       if (cachedValue !== undefined) {
@@ -111,24 +113,72 @@ export const createE3 = (e3Prime: E3Prime): E3 => {
   }
 }
 
-export type E2Prime = {
+export type EnPrime = {
   get: (scoreSheet: ScoreSheet, partialDice: DiceSet) => number
 }
 
-export type E2 = {
+const createEnPrime = (en: En, probTable: ProbTable, diceTable: DiceTable) => {
+  const cache: HashableMap<ScoreDiceKey, number> = createHashableMap()
+  return {
+    get: (scoreSheet: ScoreSheet, partialDice: DiceSet): number => {
+      const key = createScoreDiceKey(scoreSheet, partialDice)
+
+      const cachedValue = cache.get(key)
+      if (cachedValue !== undefined) {
+        return cachedValue
+      }
+
+      const superDices = diceTable.getSuperDices(partialDice)
+      const expectedValue = superDices.reduce((exp, d) => {
+        const prob = probTable.get(d.subtract(partialDice))
+        const enValue = en.get(scoreSheet, d)
+        return exp + prob * enValue
+      }, 0.0)
+      cache.set(key, expectedValue)
+      return expectedValue
+    },
+  }
+}
+
+export type En = {
   get: (scoreSheet: ScoreSheet, dice: DiceSet) => number
 }
 
-export type E1Prime = {
-  get: (scoreSheet: ScoreSheet, partialDice: DiceSet) => number
+const createEn = (enPrime: EnPrime, diceTable: DiceTable) => {
+  const cache: HashableMap<ScoreDiceKey, number> = createHashableMap()
+  return {
+    get: (scoreSheet: ScoreSheet, dice: DiceSet): number => {
+      const key = createScoreDiceKey(scoreSheet, dice)
+
+      const cachedValue = cache.get(key)
+      if (cachedValue !== undefined) {
+        return cachedValue
+      }
+
+      const subDices = diceTable.getSubDices(dice)
+      const maxValue = Math.max(
+        ...subDices.map((d) => enPrime.get(scoreSheet, d))
+      )
+      cache.set(key, maxValue)
+      return maxValue
+    },
+  }
 }
 
-export type E1 = {
-  get: (scoreSheet: ScoreSheet, dice: DiceSet) => number
-}
+export type E2Prime = EnPrime
+export const createE2Prime = createEnPrime
+
+export type E2 = En
+export const createE2 = createEn
+
+export type E1Prime = EnPrime
+export const createE1Prime = createEnPrime
+
+export type E1 = En
+export const createE1 = createEn
 
 export type E = {
-  get: (scoreSheet: ScoreSheet) => number
+  get(scoreSheet: ScoreSheet): number
 }
 
 export const createEFromBinary = async (filePath: string): Promise<E> => {
