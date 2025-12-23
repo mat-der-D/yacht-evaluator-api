@@ -91,6 +91,7 @@ const gatherSubDicesRecursive = (
   }
 
   for (let count = 0; count <= dice.counts[index]!; count++) {
+    counts[index] = count
     gatherSubDicesRecursive(dice, counts, index + 1, subDices)
   }
 }

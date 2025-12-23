@@ -180,7 +180,7 @@ testConsistencyOfE(binaryFilePath, [
     fullHouse: 30,
     smallStraight: 15,
     bigStraight: 30,
-    yacht: 50,
+    yacht: null,
   },
 ])
 

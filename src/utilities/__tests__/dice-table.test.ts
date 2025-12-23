@@ -14,11 +14,15 @@ const testGetSuperDices = (tag: string, testCases: [PartialDice, number][]) => {
       const dice = createDiceSetFromPartialDice(partialDice)
       const superDices = diceTable.getSuperDices(dice)
       expect(superDices.length).toBe(count)
+
+      const set = new Set<string>()
       for (const superDice of superDices) {
         const totalCount = superDice.counts.reduce((sum, val) => sum + val, 0)
         expect(totalCount).toBe(5)
         expect(dice.lte(superDice)).toBeTrue()
+        set.add(superDice.counts.toString())
       }
+      expect(set.size).toBe(superDices.length)
     }
   })
 }
@@ -41,6 +45,12 @@ const testGetSubDices = (tag: string, testCases: [FullDice, number][]) => {
       const subDices = diceTable.getSubDices(dice)
       expect(subDices.length).toBe(count)
       expect(subDices.every((d) => d.lte(dice))).toBeTrue()
+
+      const set = new Set<string>()
+      for (const sub of subDices) {
+        set.add(sub.counts.toString())
+      }
+      expect(set.size).toBe(subDices.length)
     }
   })
 }
@@ -48,9 +58,10 @@ const testGetSubDices = (tag: string, testCases: [FullDice, number][]) => {
 testGetSubDices('simple', [
   [[1, 1, 1, 1, 1], 6],
   [[1, 2, 3, 4, 5], 2 ** 5],
+  [[1, 1, 2, 2, 2], 12],
 ])
 
-test('Test fullDices & partialDices', () => {
+test('Test fullDices', () => {
   const diceTable = createDiceTable()
   expect(diceTable.fullDices.length).toBe(252)
 })
