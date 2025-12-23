@@ -55,19 +55,21 @@ export const createE3Prime = (e: E): E3Prime => {
       }
       const key = createE3PrimeKey(scoreSheet, dice, category)
 
-      if (!cache.has(key)) {
-        const bonus = calculateBonus(scoreSheet)
-        const score = calculateScore(category, dice)
-        const newScoreSheet = {
-          ...scoreSheet,
-          [category]: score,
-        }
-        const newBonus = calculateBonus(newScoreSheet)
-        const value = e.get(newScoreSheet) + score + newBonus - bonus
-        cache.set(key, value)
+      const cachedValue = cache.get(key)
+      if (cachedValue !== undefined) {
+        return cachedValue
       }
 
-      return cache.get(key)
+      const bonus = calculateBonus(scoreSheet)
+      const score = calculateScore(category, dice)
+      const newScoreSheet = {
+        ...scoreSheet,
+        [category]: score,
+      }
+      const newBonus = calculateBonus(newScoreSheet)
+      const calculatedValue = e.get(newScoreSheet) + score + newBonus - bonus
+      cache.set(key, calculatedValue)
+      return calculatedValue
     },
   }
 }
@@ -97,16 +99,18 @@ export const createE3 = (e3Prime: E3Prime): E3 => {
     get: (scoreSheet: ScoreSheet, dice: DiceSet) => {
       const key = createE3Key(scoreSheet, dice)
 
-      if (!cache.has(key)) {
-        const value = Math.max(
-          ...categorySchema.options.map(
-            (category) => e3Prime.get(scoreSheet, dice, category) ?? 0
-          )
-        )
-        cache.set(key, value)
+      const cachedValue = cache.get(key)
+      if (cachedValue !== undefined) {
+        return cachedValue
       }
 
-      return cache.get(key) ?? 0 // TODO: 本当は例外にしたい
+      const calculatedValue = Math.max(
+        ...categorySchema.options.map(
+          (category) => e3Prime.get(scoreSheet, dice, category) ?? 0
+        )
+      )
+      cache.set(key, calculatedValue)
+      return calculatedValue
     },
   }
 }
