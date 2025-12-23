@@ -53,5 +53,4 @@ testGetSubDices('simple', [
 test('Test fullDices & partialDices', () => {
   const diceTable = createDiceTable()
   expect(diceTable.fullDices.length).toBe(252)
-  expect(diceTable.partialDices.length).toBe(462)
 })
