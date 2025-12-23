@@ -2,6 +2,7 @@ import { test, expect } from 'bun:test'
 import type { PartialDice } from '../../types'
 import { createDiceSetFromPartialDice } from '../types'
 import { createProbTable } from '../probability'
+import { createDiceTable } from '../dice-table'
 
 const testProbTable = (tag: string, testCases: [PartialDice, number][]) => {
   const testName = `Test for ProbTable: ${tag}`
@@ -42,3 +43,19 @@ testProbTable('four dice', [
   [[1, 2, 3, 4], 24 / 1296],
   [[1, 1, 2, 2], 6 / 1296],
 ])
+
+const testProbTableByDiceGeneration = (testCases: PartialDice[]) => {
+  test('Test by dice generation', () => {
+    const probTable = createProbTable()
+    const diceTable = createDiceTable()
+    for (const partialDice of testCases) {
+      const dice = createDiceSetFromPartialDice(partialDice)
+      const totalProb = diceTable
+        .getSuperDices(dice)
+        .reduce((sum, sup) => sum + probTable.get(sup.subtract(dice)), 0.0)
+      expect(totalProb).toBeCloseTo(1.0)
+    }
+  })
+}
+
+testProbTableByDiceGeneration([[], [1, 1], [1, 5, 6], [3, 3, 5, 6]])
