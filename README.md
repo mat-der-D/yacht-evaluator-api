@@ -9,11 +9,12 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 - Validation: Zod + @hono/zod-validator
 
 ## ディレクトリ構成
+
 ```
 .
 ├── index.ts              # エントリポイント
 ├── src/
-│   ├── app.ts           # アプリケーション本体（ルート統合） ⏳ 未実装
+│   ├── app.ts           # アプリケーション本体（ルート統合） ✅ 完成
 │   ├── schemas/         # Zodスキーマ定義
 │   │   ├── common.ts    # 共通スキーマ ✅ 完成
 │   │   ├── evaluate.ts  # evaluate API スキーマ ✅ 完成
@@ -25,16 +26,23 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 │   │   ├── calculate-score.ts # calculate-score API 型 ✅ 完成
 │   │   └── index.ts     # エクスポート集約 ✅ 完成
 │   ├── utilities/       # ユーティリティ関数
-│   │   ├── types.ts     # DiceSet 型とファクトリ関数 ✅ 完成
+│   │   ├── types.ts     # DiceSet, Hashable型 ✅ 完成
 │   │   ├── score.ts     # スコア計算ロジック ✅ 完成
+│   │   ├── probability.ts # サイコロ確率計算 ✅ 完成
+│   │   ├── dice-table.ts # サイコロテーブル生成 ✅ 完成
+│   │   ├── expected-value.ts # 期待値計算（E'_3, E_3等） 🔄 実装中
 │   │   ├── index.ts     # エクスポート集約 ✅ 完成
 │   │   └── __tests__/   # ユーティリティテスト
-│   │       └── score.test.ts # スコア計算ロジックテスト ✅ 完成（13 pass）
+│   │       ├── score.test.ts # スコア計算テスト ✅ 完成（13 pass）
+│   │       ├── probability.test.ts # 確率計算テスト ✅ 完成
+│   │       ├── dice-table.test.ts # サイコロテーブルテスト ✅ 完成
+│   │       └── expected-value.test.ts # 期待値計算テスト 🔄 実装中
 │   ├── routes/          # ルート定義
-│   │   ├── evaluate.ts  # /evaluate エンドポイント ⏳ 未実装
+│   │   ├── evaluate.ts  # /evaluate エンドポイント 🔄 実装中
 │   │   ├── calculate-score.ts # /calculate-score エンドポイント ✅ 完成
 │   │   └── __tests__/   # エンドポイントテスト
-│   │       └── calculate-score.test.ts # calculate-score テスト ✅ 完成（12 pass）
+│   │       ├── calculate-score.test.ts # calculate-score テスト ✅ 完成（12 pass）
+│   │       └── evaluate.test.ts # evaluate テスト ⏳ 未実装
 └── package.json
 ```
 
@@ -80,9 +88,6 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
     - 各カテゴリ別スコア計算関数と判定関数
   - API テスト実行済み（正常動作確認済み）
 
-- ⏳ **Phase 4b**: evaluate ルート実装 - 未実装
-  - ビジネスロジック（合法手評価、最適手選出）待ち
-
 - ✅ **Phase 4-test (calculate-score)**: calculate-score テスト実装 - 完成
   - テストフレームワークセットアップ（bun:test） ✅ 完成
   - `src/utilities/__tests__/score.test.ts`: スコア計算ロジックのテスト ✅ 完成（13 pass）
@@ -92,42 +97,55 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
     - `testCalculateScoreRoute`: 全12カテゴリのエンドポイント統合テスト
     - ボーナス有無パターンの混在テスト
 
-- 🔄 **Phase 4b/4-test (evaluate) - 準備段階**: 期待値計算システム設計 - 準備中
+- ✅ **Phase 4b/4-test (evaluate) - 準備**: 期待値計算システム実装 - 実装中
   - `src/utilities/score.ts`: スコアシート全体計算 ✅ 完成
     - `calculateScoreOfSheet`: スコアシート → 最終スコア
     - `calculateScoreOfSheet` テスト ✅ 完成（3 pass）
-  - `src/utilities/types.ts`: ハッシュマップ基盤構築 ✅ 進行中
+  - `src/utilities/types.ts`: ハッシュマップ基盤構築 ✅ 完成
     - `Hashable` インターフェース定義 ✅ 完成
     - `HashableMap<K, V>` ジェネリック実装 ✅ 完成
     - `DiceSet.hash()` 実装 ✅ 完成
-    - `ScoreSheet.hash()` 実装 ⏳ 次回予定
-    - `Category.hash()` 実装 ⏳ 次回予定
-  - 目的: max-ex.md の E'_3, E'_2, E'_1 を効率的に実装するための基盤
+  - `src/utilities/probability.ts`: サイコロ確率計算 ✅ 完成
+    - `getProbability`: 任意のサイコロ状態 → 確率計算
+    - `getNextDiceSets`: 任意の状態 → 次の状態リスト生成
+    - `src/utilities/__tests__/probability.test.ts`: テスト ✅ 完成
+  - `src/utilities/dice-table.ts`: サイコロテーブル生成 ✅ 完成
+    - 全6400通りのサイコロ組み合わせをプリコンピュート
+    - 効率的な期待値計算のための基盤データ
+    - `src/utilities/__tests__/dice-table.test.ts`: テスト ✅ 完成
+  - `src/utilities/expected-value.ts`: 期待値計算（E'\_3, E_3 等） 🔄 実装中
+    - `createE3Prime(e)`: 最後のロールの期待値計算キャッシュ機構
+    - max-ex.md に基づく E'\_3 → E_3 → E'\_2 → E_2 → E'\_1 → E_1 の段階的実装
+    - `src/utilities/__tests__/expected-value.test.ts`: テスト 🔄 実装中
+  - 目的: 局面評価を効率的に計算するための核となるシステム
+
+- ✅ **Phase 5**: アプリ統合 - 完成
+  - `src/app.ts` でルート（evaluate, calculate-score）をマウント ✅ 完成
+  - ヘルスチェック等の共通エンドポイント ✅ 実装
+
+- 🔄 **Phase 4b (evaluate ルート)**: evaluate エンドポイント実装 - 実装中
+  - `src/routes/evaluate.ts`: /evaluate エンドポイント 🔄 スケルトン実装済み
+  - ビジネスロジック（期待値計算、合法手評価）の実装待ち
 
 - ⏳ **Phase 4-test (evaluate)**: evaluate ルートのテスト実装 - 未実装
   - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
 
 ### 次回以降の作業手順
 
-1. **Phase 4b/4-test (evaluate) - 準備完成**
-   - `ScoreSheet.hash()` 実装
-   - `Category.hash()` 実装
-   - E3PrimeMap 型定義
+1. **Phase 4b/4-test (evaluate) - 期待値計算完成**
+   - `expected-value.ts` で E'\_3 から E_1 までの期待値計算実装完了
+   - キャッシュ機構を活用した効率的な状態遷移
 
 2. **Phase 4b**: evaluate ルート実装（ビジネスロジック）
    - TDD を活用して段階的に実装
-   - max-ex.md に基づき E'_3 → E_3 → E'_2 → E_2 → E'_1 → E_1 の順で実装
+   - max-ex.md に基づき E'\_3 → E_3 → E'\_2 → E_2 → E'\_1 → E_1 の順で実装
    - 中間値のテストと確率的性質の検証
 
 3. **Phase 4-test (evaluate)**: evaluate エンドポイントテスト実装
    - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
    - 計算済みデータとの整合性検証
 
-4. **Phase 5**: アプリ統合
-   - `src/app.ts` でルート（evaluate, calculate-score）をマウント
-   - ヘルスチェック等の共通エンドポイント
-
-5. **拡張**: エラーハンドリング改善（オプション）
+4. **拡張**: エラーハンドリング改善（オプション）
    - `zValidator` のカスタムエラーハンドリング
    - エラーレスポンスに key 情報を追加
 
@@ -137,50 +155,56 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
 // src/routes/evaluate.ts
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
-import { evaluateRequestSchema, evaluateResponseSchema } from '../schemas/evaluate'
+import { evaluateRequestSchema } from '../schemas'
+import type { EvaluateResponse } from '../types'
 
-const evaluate = new Hono()
+const evaluateRoute = new Hono()
 
-evaluate.post('/', zValidator('json', evaluateRequestSchema), (c) => {
+evaluateRoute.post('/', zValidator('json', evaluateRequestSchema), (c) => {
   const { scoreSheet, dice, rollCount } = c.req.valid('json')
 
   // ビジネスロジック実装
   // 合法手を列挙し、それぞれの評価値を計算
 
-  return c.json({
-    data: [ /* 合法手のリスト */ ]
-  })
+  const response: EvaluateResponse = {
+    data: [
+      /* 合法手のリスト */
+    ],
+  }
+  return c.json(response)
 })
 
-export default evaluate
+export default evaluateRoute
 ```
 
+### 現在のアプリケーション統合（Phase 5 - 完成）
 
-### アプリ統合の参考パターン（Phase 5）
 ```typescript
 // src/app.ts
 import { Hono } from 'hono'
-import evaluate from './routes/evaluate'
-import calculateScore from './routes/calculate-score'
+import calculateScoreRoute from './routes/calculate-score'
+import evaluateRoute from './routes/evaluate'
 
 const app = new Hono()
 
-// ヘルスチェック
-app.get('/health', (c) => c.json({ status: 'ok' }))
+app.get('/health', (c) => {
+  return c.json({ status: 'ok' })
+})
 
-// API ルートをマウント
-app.route('/api/yacht/evaluate', evaluate)
-app.route('/api/yacht/calculate-score', calculateScore)
+app.route('/evaluate', evaluateRoute)
+app.route('/calculate-score', calculateScoreRoute)
 
 export default app
 ```
 
 ## セットアップ
+
 ```bash
 bun install
 ```
 
 ## 開発サーバー起動
+
 ```bash
 bun run dev
 ```
