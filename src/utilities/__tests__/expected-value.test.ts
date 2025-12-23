@@ -147,9 +147,11 @@ const testConsistencyOfE = (
       const e1Prime = createE1Prime(e2, probTable, diceTable)
       const e1 = createE1(e1Prime, diceTable)
 
-      const calculatedValue = Math.max(
-        ...diceTable.fullDices.map((dice) => e1.get(scoreSheet, dice))
-      )
+      const calculatedValue = diceTable.fullDices.reduce((exp, d) => {
+        const prob = probTable.get(d)
+        const e1Value = e1.get(scoreSheet, d)
+        return exp + prob * e1Value
+      }, 0.0)
 
       const answer = e.get(scoreSheet) // 計算済みデータ
 
