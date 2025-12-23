@@ -44,6 +44,12 @@ testProbTable('four dice', [
   [[1, 1, 2, 2], 6 / 1296],
 ])
 
+testProbTable('five dice', [
+  [[1, 1, 1, 1, 1], 1 / 6 ** 5],
+  [[1, 1, 1, 1, 2], 5 / 6 ** 5],
+  [[1, 2, 3, 4, 5], 120 / 6 ** 5],
+])
+
 const testProbTableByDiceGeneration = (testCases: PartialDice[]) => {
   test('Test by dice generation', () => {
     const probTable = createProbTable()
