@@ -1,6 +1,6 @@
 import { test, expect } from 'bun:test'
 import type { Category, FullDice, ScoreSheet } from '../../types'
-import { createE3Prime, createEFromBinary } from '../expected-value'
+import { createE3, createE3Prime, createEFromBinary } from '../expected-value'
 import { createDiceSetFromFullDice } from '../types'
 import { categorySchema } from '../../schemas'
 
@@ -13,6 +13,16 @@ const createScoreSheetExcept = (except: Category): ScoreSheet => {
     ...fullScoreSheet,
     [except]: null,
   }
+}
+
+const createScoreSheetExceptMany = (except: Category[]): ScoreSheet => {
+  const scoreSheet = {
+    ...fullScoreSheet,
+  }
+  for (const category of except) {
+    scoreSheet[category] = null
+  }
+  return scoreSheet
 }
 
 const testE3Prime = (
@@ -61,4 +71,40 @@ testE3Prime('11th turn test', binaryFilePath, [
 testE3Prime('already filled test', binaryFilePath, [
   [fullScoreSheet, [1, 2, 3, 4, 5], 'ace', undefined],
   [fullScoreSheet, [6, 6, 6, 6, 6], 'six', undefined],
+])
+
+const testE3 = (
+  tag: string,
+  binaryFilePath: string,
+  testCases: [ScoreSheet, FullDice, Category[]][]
+) => {
+  const testName = `E3: ${tag}`
+  test(testName, async () => {
+    const e = await createEFromBinary(binaryFilePath)
+    const e3Prime = createE3Prime(e)
+    const e3 = createE3(e3Prime)
+    for (const [scoreSheet, fullDice, categories] of testCases) {
+      const dice = createDiceSetFromFullDice(fullDice)
+      let answer = 0
+      for (const category of categories) {
+        answer = Math.max(answer, e3Prime.get(scoreSheet, dice, category) ?? 0)
+      }
+      const value = e3.get(scoreSheet, dice)
+      expect(value).toBeCloseTo(answer)
+    }
+    //
+  })
+}
+
+testE3('two choice left', binaryFilePath, [
+  [
+    createScoreSheetExceptMany([`ace`, `deuce`]),
+    [2, 2, 2, 2, 2],
+    ['ace', 'deuce'],
+  ],
+  [
+    createScoreSheetExceptMany([`yacht`, 'choice']),
+    [6, 6, 6, 6, 6],
+    [`yacht`, 'choice'],
+  ],
 ])

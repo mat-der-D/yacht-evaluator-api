@@ -91,7 +91,7 @@ const createE3Key = (scoreSheet: ScoreSheet, dice: DiceSet) => {
   }
 }
 
-const createE3 = (e3Prime: E3Prime) => {
+export const createE3 = (e3Prime: E3Prime): E3 => {
   const cache: HashableMap<E3Key, number> = createHashableMap()
   return {
     get: (scoreSheet: ScoreSheet, dice: DiceSet) => {
@@ -106,7 +106,7 @@ const createE3 = (e3Prime: E3Prime) => {
         cache.set(key, value)
       }
 
-      return cache.get(key)
+      return cache.get(key) ?? 0 // TODO: 本当は例外にしたい
     },
   }
 }
