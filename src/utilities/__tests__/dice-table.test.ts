@@ -14,12 +14,11 @@ const testGetSuperDices = (tag: string, testCases: [PartialDice, number][]) => {
       const dice = createDiceSetFromPartialDice(partialDice)
       const superDices = diceTable.getSuperDices(dice)
       expect(superDices.length).toBe(count)
-      expect(
-        superDices.every(
-          (d) => d.counts.reduce((sum, val) => sum + val, 0) == 5
-        )
-      ).toBeTrue()
-      expect(superDices.every((d) => dice.lte(d))).toBeTrue()
+      for (const superDice of superDices) {
+        const totalCount = superDice.counts.reduce((sum, val) => sum + val, 0)
+        expect(totalCount).toBe(5)
+        expect(dice.lte(superDice)).toBeTrue()
+      }
     }
   })
 }
