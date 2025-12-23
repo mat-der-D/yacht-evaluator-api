@@ -38,8 +38,12 @@ export type E = {
   get: (scoreSheet: ScoreSheet) => number
 }
 
-export const createEFromBinary = async (filePath: string): E => {
-  // TODO: 実装を与える
+export const createEFromBinary = async (filePath: string): Promise<E> => {
+  const expectedValues = await loadYachtEvalData(filePath)
+  return {
+    get: (scoreSheet: ScoreSheet) =>
+      getExpectedValue(expectedValues, scoreSheet),
+  }
 }
 
 const loadYachtEvalData = async (filePath: string): Promise<Float64Array> => {
