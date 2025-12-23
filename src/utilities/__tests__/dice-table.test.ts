@@ -6,21 +6,25 @@ import {
 import { createDiceTable } from '../dice-table'
 import type { FullDice, PartialDice } from '../../types'
 
-const testSuperDiceCount = (
-  tag: string,
-  testCases: [PartialDice, number][]
-) => {
-  const testName = `Test getSuperDices by count: ${tag}`
+const testGetSuperDices = (tag: string, testCases: [PartialDice, number][]) => {
+  const testName = `Test getSuperDices: ${tag}`
   const diceTable = createDiceTable()
   test(testName, () => {
     for (const [partialDice, count] of testCases) {
       const dice = createDiceSetFromPartialDice(partialDice)
-      expect(diceTable.getSuperDices(dice).length).toBe(count)
+      const superDices = diceTable.getSuperDices(dice)
+      expect(superDices.length).toBe(count)
+      expect(
+        superDices.every(
+          (d) => d.counts.reduce((sum, val) => sum + val, 0) == 5
+        )
+      ).toBeTrue()
+      expect(superDices.every((d) => dice.lte(d))).toBeTrue()
     }
   })
 }
 
-testSuperDiceCount('simple', [
+testGetSuperDices('simple', [
   [[], 252],
   [[1], 126],
   [[1, 1], 56],
@@ -29,18 +33,20 @@ testSuperDiceCount('simple', [
   [[1, 1, 1, 1, 1], 1],
 ])
 
-const testSubDiceCount = (tag: string, testCases: [FullDice, number][]) => {
-  const testName = `Test getSubDices by count: ${tag}`
+const testGetSubDices = (tag: string, testCases: [FullDice, number][]) => {
+  const testName = `Test getSubDices: ${tag}`
   const diceTable = createDiceTable()
   test(testName, () => {
     for (const [fullDice, count] of testCases) {
       const dice = createDiceSetFromFullDice(fullDice)
-      expect(diceTable.getSubDices(dice).length).toBe(count)
+      const subDices = diceTable.getSubDices(dice)
+      expect(subDices.length).toBe(count)
+      expect(subDices.every((d) => d.lte(dice))).toBeTrue()
     }
   })
 }
 
-testSubDiceCount('simple', [
+testGetSubDices('simple', [
   [[1, 1, 1, 1, 1], 6],
   [[1, 2, 3, 4, 5], 2 ** 5],
 ])
