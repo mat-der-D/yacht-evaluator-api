@@ -1,4 +1,4 @@
-import type { Choice, ScoreSheet } from '../types'
+import type { Choice, FullDice, ScoreSheet } from '../types'
 import { createDiceTable } from './dice-table'
 import {
   createE1Prime,
@@ -38,7 +38,7 @@ export const createEvaluators = async (binaryFilePath: string) => {
 
 export const evaluate = (
   scoreSheet: ScoreSheet,
-  dice: DiceSet,
+  fullDice: FullDice,
   rollCount: number,
   evaluators: Evaluators
 ): Choice[] => {
