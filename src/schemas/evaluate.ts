@@ -7,19 +7,19 @@ export const evaluateRequestSchema = z.object({
   rollCount: z.int().min(1).max(3),
 })
 
-const diceChoiceSchema = z.object({
+export const diceChoiceSchema = z.object({
   choiceType: z.literal('dice'),
   diceToHold: z.array(z.int().min(1).max(6)).min(0).max(5),
   expectedValue: z.number(),
 })
 
-const categoryChoiceSchema = z.object({
+export const categoryChoiceSchema = z.object({
   choiceType: z.literal('category'),
   category: categorySchema,
   expectedValue: z.number(),
 })
 
-const choiceSchema = z.union([diceChoiceSchema, categoryChoiceSchema])
+export const choiceSchema = z.union([diceChoiceSchema, categoryChoiceSchema])
 
 export const evaluateResponseSchema = z.object({
   data: z.array(choiceSchema).optional(),
