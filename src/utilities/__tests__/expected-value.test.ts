@@ -147,7 +147,7 @@ const testConsistencyOfE = (
     for (const scoreSheet of testCases) {
       const calculatedValue = diceTable.fullDices.reduce((exp, d) => {
         const prob = probTable.get(d)
-        const e1Value = e1.get(scoreSheet, d)
+        const e1Value = e1.get(scoreSheet, d)!
         return exp + prob * e1Value
       }, 0.0)
 
