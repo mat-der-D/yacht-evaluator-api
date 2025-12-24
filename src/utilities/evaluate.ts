@@ -1,5 +1,11 @@
+import {
+  categoryChoiceSchema,
+  categorySchema,
+  diceChoiceSchema,
+  partialDiceSchema,
+} from '../schemas'
 import type { Choice, FullDice, ScoreSheet } from '../types'
-import { createDiceTable } from './dice-table'
+import { createDiceTable, type DiceTable } from './dice-table'
 import {
   createE1Prime,
   createE2,
@@ -12,12 +18,13 @@ import {
   type E3Prime,
 } from './expected-value'
 import { createProbTable } from './probability'
-import type { DiceSet } from './types'
+import { createDiceSetFromFullDice, type DiceSet } from './types'
 
 export type Evaluators = {
   e1Prime: E1Prime
   e2Prime: E2Prime
   e3Prime: E3Prime
+  diceTable: DiceTable
 }
 
 export const createEvaluators = async (binaryFilePath: string) => {
@@ -33,6 +40,7 @@ export const createEvaluators = async (binaryFilePath: string) => {
     e1Prime,
     e2Prime,
     e3Prime,
+    diceTable,
   }
 }
 
@@ -42,5 +50,42 @@ export const evaluate = (
   rollCount: number,
   evaluators: Evaluators
 ): Choice[] => {
-  return []
+  const fullDiceSet = createDiceSetFromFullDice(fullDice)
+  if (rollCount === 1 || rollCount === 2) {
+    const choices: Choice[] = []
+    for (const sub of evaluators.diceTable.getSubDices(fullDiceSet)) {
+      const diceToHold = partialDiceSchema.parse(sub.faces)
+      const expectedValue =
+        rollCount === 1
+          ? evaluators.e1Prime.get(scoreSheet, sub)
+          : evaluators.e2Prime.get(scoreSheet, sub)
+      const choice = diceChoiceSchema.parse({
+        choiceType: 'dice',
+        diceToHold,
+        expectedValue,
+      })
+      choices.push(choice)
+    }
+    choices.sort((choice) => -choice.expectedValue)
+    return choices
+  } else if (rollCount === 3) {
+    const choices: Choice[] = []
+    for (const category of categorySchema.options) {
+      const expectedValue = evaluators.e3Prime.get(
+        scoreSheet,
+        fullDiceSet,
+        category
+      )
+      const choice = categoryChoiceSchema.parse({
+        choiceType: 'category',
+        category,
+        expectedValue,
+      })
+      choices.sort((choice) => -choice.expectedValue)
+      choices.push(choice)
+    }
+    return choices
+  } else {
+    throw new Error(`Expect rollcount to be 1, 2 or 3: ${rollCount}`)
+  }
 }
