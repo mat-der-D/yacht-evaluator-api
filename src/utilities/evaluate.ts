@@ -24,7 +24,7 @@ const BINARY_FILE_PATH = 'data/yacht_exp.bin'
 let evaluators: Evaluators | null = null
 let loadPromise: Promise<Evaluators> | null = null
 
-export const getEvaluators = async () => {
+export const getEvaluators = async (): Promise<Evaluators> => {
   if (evaluators !== null) return evaluators
   if (loadPromise !== null) return await loadPromise
 

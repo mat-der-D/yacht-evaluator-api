@@ -182,10 +182,14 @@ export type E = {
 }
 
 export const createEFromBinary = async (filePath: string): Promise<E> => {
-  const expectedValues = await loadYachtEvalData(filePath)
-  return {
-    get: (scoreSheet: ScoreSheet) =>
-      getExpectedValue(expectedValues, scoreSheet),
+  try {
+    const expectedValues = await loadYachtEvalData(filePath)
+    return {
+      get: (scoreSheet: ScoreSheet) =>
+        getExpectedValue(expectedValues, scoreSheet),
+    }
+  } catch {
+    throw new Error('Failed to load the analyzed data')
   }
 }
 
