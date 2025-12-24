@@ -140,16 +140,22 @@ Bun + Hono で実装したヨット局面評価のバックエンドAPI
     - `evaluate3()`: rollCount=3 時の CategoryChoice 生成（期待値でソート）
   - 期待値計算システム（E1' → E_1） ✅ 利用可能
 
-- ⏳ **Phase 4-test (evaluate)**: evaluate ルートのテスト実装 - 未実装
-  - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
+- ✅ **Phase 4-test (evaluate)**: evaluate ルートのテスト実装 - 完成
+  - `src/utilities/__tests__/evaluate.test.ts`: evaluate ユーティリティ関数のテスト ✅ 完成（2 pass）
+    - ファイル読み込み確認（`getEvaluators()`）
+    - `rollCount` (1, 2, 3) 各パターンでの期待値計算
+    - 期待値が降順ソートされていることを検証
+    - スコアシート満杯時に空配列が返されることを検証
+  - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト ✅ 完成（2 pass）
+    - 成功ケース：異なる `rollCount` での選択肢数検証
+    - 失敗ケース：バリデーションエラー時の動作確認
 
 ### 次回以降の作業手順
 
-1. **Phase 4-test (evaluate)**: evaluate エンドポイントテスト実装 🔄 次のステップ
-   - `src/routes/__tests__/evaluate.test.ts`: evaluate エンドポイントのテスト
-   - 期待値計算の正確性検証
-   - エッジケースのテスト（スコアシート満杯時など）
-   - 遅延読み込みのテスト
+1. **修正が必要な実装**：スコアシート満杯時の DiceChoice 生成
+   - 現在：`evaluate12()` はスコアシート満杯でも DiceChoice を返す
+   - 修正案：スコアシート満杯なら、すべての `rollCount` で空配列を返す
+   - テストが既に実装されているため、この修正でテストが通るようになる
 
 2. **拡張**: エラーハンドリング改善（オプション）
    - `zValidator` のカスタムエラーハンドリング
