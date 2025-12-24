@@ -73,7 +73,7 @@ export const createE3Prime = (e: E): E3Prime => {
 }
 
 export type E3 = {
-  get: (scoreSheet: ScoreSheet, dice: DiceSet) => number
+  get: (scoreSheet: ScoreSheet, dice: DiceSet) => number | undefined
 }
 
 type ScoreDiceKey = {
@@ -114,13 +114,14 @@ export const createE3 = (e3Prime: E3Prime): E3 => {
 }
 
 type EnPrime = {
-  get: (scoreSheet: ScoreSheet, partialDice: DiceSet) => number
+  get: (scoreSheet: ScoreSheet, partialDice: DiceSet) => number | undefined
 }
 
 const createEnPrime = (en: En, probTable: ProbTable, diceTable: DiceTable) => {
   const cache: HashableMap<ScoreDiceKey, number> = createHashableMap()
   return {
-    get: (scoreSheet: ScoreSheet, partialDice: DiceSet): number => {
+    get: (scoreSheet: ScoreSheet, partialDice: DiceSet): number | undefined => {
+      if (isFullScoreSheet(scoreSheet)) return undefined
       const key = createScoreDiceKey(scoreSheet, partialDice)
 
       const cachedValue = cache.get(key)
@@ -131,7 +132,7 @@ const createEnPrime = (en: En, probTable: ProbTable, diceTable: DiceTable) => {
       const superDices = diceTable.getSuperDices(partialDice)
       const expectedValue = superDices.reduce((exp, d) => {
         const prob = probTable.get(d.subtract(partialDice))
-        const enValue = en.get(scoreSheet, d)
+        const enValue = en.get(scoreSheet, d)!
         return exp + prob * enValue
       }, 0.0)
       cache.set(key, expectedValue)
@@ -141,13 +142,14 @@ const createEnPrime = (en: En, probTable: ProbTable, diceTable: DiceTable) => {
 }
 
 type En = {
-  get: (scoreSheet: ScoreSheet, dice: DiceSet) => number
+  get: (scoreSheet: ScoreSheet, dice: DiceSet) => number | undefined
 }
 
 const createEn = (enPrime: EnPrime, diceTable: DiceTable) => {
   const cache: HashableMap<ScoreDiceKey, number> = createHashableMap()
   return {
-    get: (scoreSheet: ScoreSheet, dice: DiceSet): number => {
+    get: (scoreSheet: ScoreSheet, dice: DiceSet): number | undefined => {
+      if (isFullScoreSheet(scoreSheet)) return undefined
       const key = createScoreDiceKey(scoreSheet, dice)
 
       const cachedValue = cache.get(key)
@@ -157,13 +159,16 @@ const createEn = (enPrime: EnPrime, diceTable: DiceTable) => {
 
       const subDices = diceTable.getSubDices(dice)
       const maxValue = Math.max(
-        ...subDices.map((d) => enPrime.get(scoreSheet, d))
+        ...subDices.map((d) => enPrime.get(scoreSheet, d)!)
       )
       cache.set(key, maxValue)
       return maxValue
     },
   }
 }
+
+const isFullScoreSheet = (scoreSheet: ScoreSheet): boolean =>
+  Object.values(scoreSheet).every((value) => value !== null)
 
 export type E2Prime = EnPrime
 export const createE2Prime = createEnPrime

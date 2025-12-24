@@ -63,7 +63,7 @@ const createEvaluators = async (binaryFilePath: string) => {
 }
 
 type Evaluator12 = {
-  get(scoreSheet: ScoreSheet, partialDice: DiceSet): number
+  get(scoreSheet: ScoreSheet, partialDice: DiceSet): number | undefined
 }
 
 type Evaluator3 = {
@@ -112,6 +112,7 @@ const evaluate12 = (
   for (const sub of diceTable.getSubDices(fullDice)) {
     const diceToHold = partialDiceSchema.parse(sub.faces)
     const expectedValue = evaluator.get(scoreSheet, sub)
+    if (expectedValue === undefined) continue
     const choice = diceChoiceSchema.parse({
       choiceType: 'dice',
       diceToHold,
