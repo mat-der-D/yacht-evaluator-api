@@ -4,11 +4,11 @@ import evaluateRoute from './routes/evaluate'
 
 const app = new Hono()
 
-app.get('/health', (c) => {
+app.get('/api/v1', (c) => {
   return c.json({ status: 'ok' })
 })
 
-app.route('/evaluate', evaluateRoute)
-app.route('/calculate-score', calculateScoreRoute)
+app.route('/api/v1', evaluateRoute)
+app.route('/api/v1', calculateScoreRoute)
 
 export default app

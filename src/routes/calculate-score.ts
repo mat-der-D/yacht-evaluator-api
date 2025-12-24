@@ -8,7 +8,7 @@ import { createDiceSetFromFullDice } from '../utilities/types'
 const calculateScoreRoute = new Hono()
 
 calculateScoreRoute.post(
-  '/',
+  '/calculate-score',
   zValidator('json', calculateScoreRequestSchema),
   (c) => {
     const { scoreSheet, category, dice } = c.req.valid('json')

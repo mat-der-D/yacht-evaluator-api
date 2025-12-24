@@ -22,10 +22,10 @@ const testCalculateScoreRoute = (
   tag: string,
   testCases: [CalculateScoreRequest, CalculateScoreResponse][]
 ) => {
-  const testName = `POST / - ${tag}`
+  const testName = `POST /calculate-score - ${tag}`
   test(testName, async () => {
     for (const [reqBody, resBody] of testCases) {
-      const req = new Request('http://localhost', {
+      const req = new Request('http://localhost/calculate-score', {
         method: 'POST',
         body: JSON.stringify(reqBody),
         headers: { 'Content-Type': 'application/json' },

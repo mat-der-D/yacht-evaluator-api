@@ -7,7 +7,7 @@ import { evaluate, getEvaluators } from '../utilities/evaluate'
 const evaluateRoute = new Hono()
 
 evaluateRoute.post(
-  '/',
+  '/evaluate',
   zValidator('json', evaluateRequestSchema),
   async (c) => {
     const { scoreSheet, dice, rollCount } = c.req.valid('json')
