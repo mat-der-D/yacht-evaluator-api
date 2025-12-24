@@ -4,7 +4,7 @@ import {
   diceChoiceSchema,
   partialDiceSchema,
 } from '../schemas'
-import type { Choice, FullDice, ScoreSheet } from '../types'
+import type { Category, Choice, FullDice, ScoreSheet } from '../types'
 import { createDiceTable, type DiceTable } from './dice-table'
 import {
   createE1Prime,
@@ -44,6 +44,18 @@ export const createEvaluators = async (binaryFilePath: string) => {
   }
 }
 
+type Evaluator12 = {
+  get(scoreSheet: ScoreSheet, partialDice: DiceSet): number
+}
+
+type Evaluator3 = {
+  get(
+    scoreSheet: ScoreSheet,
+    fullDice: DiceSet,
+    category: Category
+  ): number | undefined
+}
+
 export const evaluate = (
   scoreSheet: ScoreSheet,
   fullDice: FullDice,
@@ -51,41 +63,64 @@ export const evaluate = (
   evaluators: Evaluators
 ): Choice[] => {
   const fullDiceSet = createDiceSetFromFullDice(fullDice)
-  if (rollCount === 1 || rollCount === 2) {
-    const choices: Choice[] = []
-    for (const sub of evaluators.diceTable.getSubDices(fullDiceSet)) {
-      const diceToHold = partialDiceSchema.parse(sub.faces)
-      const expectedValue =
-        rollCount === 1
-          ? evaluators.e1Prime.get(scoreSheet, sub)
-          : evaluators.e2Prime.get(scoreSheet, sub)
-      const choice = diceChoiceSchema.parse({
-        choiceType: 'dice',
-        diceToHold,
-        expectedValue,
-      })
-      choices.push(choice)
-    }
-    choices.sort((choice) => -choice.expectedValue)
-    return choices
+  if (rollCount === 1) {
+    return evaluate12(
+      scoreSheet,
+      fullDiceSet,
+      evaluators.e1Prime,
+      evaluators.diceTable
+    )
+  } else if (rollCount === 2) {
+    return evaluate12(
+      scoreSheet,
+      fullDiceSet,
+      evaluators.e2Prime,
+      evaluators.diceTable
+    )
   } else if (rollCount === 3) {
-    const choices: Choice[] = []
-    for (const category of categorySchema.options) {
-      const expectedValue = evaluators.e3Prime.get(
-        scoreSheet,
-        fullDiceSet,
-        category
-      )
-      const choice = categoryChoiceSchema.parse({
-        choiceType: 'category',
-        category,
-        expectedValue,
-      })
-      choices.sort((choice) => -choice.expectedValue)
-      choices.push(choice)
-    }
-    return choices
+    return evaluate3(scoreSheet, fullDiceSet, evaluators.e3Prime)
   } else {
     throw new Error(`Expect rollcount to be 1, 2 or 3: ${rollCount}`)
   }
+}
+
+const evaluate12 = (
+  scoreSheet: ScoreSheet,
+  fullDice: DiceSet,
+  evaluator: Evaluator12,
+  diceTable: DiceTable
+): Choice[] => {
+  const choices: Choice[] = []
+  for (const sub of diceTable.getSubDices(fullDice)) {
+    const diceToHold = partialDiceSchema.parse(sub.faces)
+    const expectedValue = evaluator.get(scoreSheet, sub)
+    const choice = diceChoiceSchema.parse({
+      choiceType: 'dice',
+      diceToHold,
+      expectedValue,
+    })
+    choices.push(choice)
+  }
+  choices.sort((choice) => -choice.expectedValue)
+  return choices
+}
+
+const evaluate3 = (
+  scoreSheet: ScoreSheet,
+  fullDice: DiceSet,
+  evaluator: Evaluator3
+): Choice[] => {
+  const choices: Choice[] = []
+  for (const category of categorySchema.options) {
+    const expectedValue = evaluator.get(scoreSheet, fullDice, category)
+    if (expectedValue === undefined) continue
+    const choice = categoryChoiceSchema.parse({
+      choiceType: 'category',
+      category,
+      expectedValue,
+    })
+    choices.push(choice)
+  }
+  choices.sort((choice) => -choice.expectedValue)
+  return choices
 }
