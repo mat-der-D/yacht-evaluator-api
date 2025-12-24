@@ -200,6 +200,16 @@ export default evaluateRoute
 - rollCount（1, 2, 3）に応じた期待値計算器の自動選択
 - ファイル読み込み失敗時は統一されたエラーメッセージを返す
 
+### API エンドポイント
+
+```
+GET  /api/v1                      ヘルスチェック
+POST /api/v1/evaluate             局面評価
+POST /api/v1/calculate-score      スコア計算
+```
+
+**バージョニング:** `/api/v1` 形式を採用。バージョンアップ時は `/api/v1.2` などに変更可能。
+
 ### 現在のアプリケーション統合（Phase 5 - 完成）
 
 ```typescript
@@ -210,14 +220,127 @@ import evaluateRoute from './routes/evaluate'
 
 const app = new Hono()
 
-app.get('/health', (c) => {
+// ヘルスチェック
+app.get('/api/v1', (c) => {
   return c.json({ status: 'ok' })
 })
 
-app.route('/evaluate', evaluateRoute)
-app.route('/calculate-score', calculateScoreRoute)
+// API ルート（バージョン v1）
+app.route('/api/v1', evaluateRoute)
+app.route('/api/v1', calculateScoreRoute)
 
 export default app
+```
+
+**設計のポイント：**
+- `app.ts`: バージョニング管理（`/api/v1` など）
+- `routes/*.ts`: 機能パス定義（`/evaluate`, `/calculate-score` など）
+- バージョンアップ時は `app.ts` の 2 行を変更するだけで対応可能
+
+## API 使用例
+
+### 1. ヘルスチェック
+
+```bash
+curl -X GET http://localhost:3000/api/v1
+```
+
+**レスポンス（200 OK）:**
+```json
+{
+  "status": "ok"
+}
+```
+
+### 2. 局面評価（evaluate）
+
+```bash
+curl -X POST http://localhost:3000/api/v1/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scoreSheet": {
+      "ace": null,
+      "deuce": null,
+      "trey": null,
+      "four": null,
+      "five": null,
+      "six": null,
+      "choice": null,
+      "fourOfAKind": null,
+      "fullHouse": null,
+      "smallStraight": null,
+      "bigStraight": null,
+      "yacht": null
+    },
+    "dice": [1, 2, 3, 4, 5],
+    "rollCount": 1
+  }'
+```
+
+**レスポンス（200 OK）:**
+```json
+{
+  "data": [
+    {
+      "choiceType": "category",
+      "category": "choice",
+      "expectedValue": 15.0
+    },
+    {
+      "choiceType": "dice",
+      "diceToHold": [5],
+      "expectedValue": 12.5
+    }
+  ]
+}
+```
+
+### 3. スコア計算（calculate-score）
+
+```bash
+curl -X POST http://localhost:3000/api/v1/calculate-score \
+  -H "Content-Type: application/json" \
+  -d '{
+    "scoreSheet": {
+      "ace": null,
+      "deuce": null,
+      "trey": null,
+      "four": null,
+      "five": null,
+      "six": null,
+      "choice": null,
+      "fourOfAKind": null,
+      "fullHouse": null,
+      "smallStraight": null,
+      "bigStraight": null,
+      "yacht": null
+    },
+    "category": "choice",
+    "dice": [1, 2, 3, 4, 5]
+  }'
+```
+
+**レスポンス（200 OK）:**
+```json
+{
+  "data": {
+    "scoreSheet": {
+      "ace": null,
+      "deuce": null,
+      "trey": null,
+      "four": null,
+      "five": null,
+      "six": null,
+      "choice": 15,
+      "fourOfAKind": null,
+      "fullHouse": null,
+      "smallStraight": null,
+      "bigStraight": null,
+      "yacht": null
+    },
+    "bonus": 0
+  }
+}
 ```
 
 ## セットアップ
