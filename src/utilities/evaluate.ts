@@ -121,7 +121,7 @@ const evaluate12 = (
     choices.push(choice)
   }
   // 期待値で降順にソート
-  choices.sort((choice) => choice.expectedValue)
+  choices.sort((c1, c2) => c2.expectedValue - c1.expectedValue)
   return choices
 }
 
@@ -142,6 +142,6 @@ const evaluate3 = (
     choices.push(choice)
   }
   // 期待値で降順にソート
-  choices.sort((choice) => choice.expectedValue)
+  choices.sort((c1, c2) => c2.expectedValue - c1.expectedValue)
   return choices
 }

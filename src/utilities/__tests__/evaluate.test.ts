@@ -44,6 +44,25 @@ const testEvaluate = (
 testEvaluate('basic', [
   [
     {
+      ace: null,
+      deuce: null,
+      trey: null,
+      four: null,
+      five: null,
+      six: null,
+      choice: null,
+      fourOfAKind: null,
+      fullHouse: null,
+      smallStraight: null,
+      bigStraight: null,
+      yacht: null,
+    },
+    [1, 4, 5, 6, 6],
+    1,
+    createCriteria('dice', 24),
+  ],
+  [
+    {
       ace: 0,
       deuce: 0,
       trey: 0,
