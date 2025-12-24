@@ -239,6 +239,57 @@ bun test src/routes/__tests__/evaluate.test.ts
 
 **合計: 45 pass**
 
+## デプロイ
+
+### Google Cloud Run へのデプロイ
+
+このプロジェクトは Google Cloud Run で動作するよう設定されています。
+
+#### 前提条件
+
+- Google Cloud アカウント
+- `gcloud` CLI がインストール済み
+- Docker がインストール済み（またはクラウドビルドを使用）
+
+#### デプロイ手順
+
+1. **環境変数を設定**
+
+```bash
+# .env.example をコピーして .env を作成
+cp .env.example .env
+
+# CORS_ORIGIN を Web UI のドメインに設定（例）
+# CORS_ORIGIN=https://yacht-ui.example.com
+```
+
+2. **Google Cloud Run にデプロイ**
+
+```bash
+# プロジェクトIDを設定
+export PROJECT_ID=your-project-id
+export SERVICE_NAME=yacht-evaluator-api
+
+# イメージをビルド＆デプロイ
+gcloud run deploy $SERVICE_NAME \
+  --source . \
+  --platform managed \
+  --region asia-northeast1 \
+  --set-env-vars CORS_ORIGIN=https://yacht-ui.example.com
+```
+
+3. **デプロイ後の確認**
+
+```bash
+# ヘルスチェック
+curl https://<service-url>/api/v1
+```
+
+#### 環境変数
+
+- `CORS_ORIGIN`: Web UI のドメイン（デフォルト: `*` で全ドメイン許可）
+- `PORT`: ポート番号（Cloud Run では 8080）
+
 ## ライセンス
 
 MIT
