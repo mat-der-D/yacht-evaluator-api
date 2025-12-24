@@ -45,7 +45,7 @@ export type Evaluators = {
   diceTable: DiceTable
 }
 
-export const createEvaluators = async (binaryFilePath: string) => {
+const createEvaluators = async (binaryFilePath: string) => {
   const probTable = createProbTable()
   const diceTable = createDiceTable()
   const e = await createEFromBinary(binaryFilePath)
