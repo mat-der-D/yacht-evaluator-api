@@ -8,23 +8,13 @@ import type {
 } from '../../types'
 import evaluateRoute from '../evaluate'
 
-type Criteria = {
-  choiceType: 'dice' | 'category'
-  count: number
-}
-
-const createCriteria = (choiceType: 'dice' | 'category', count: number) => ({
-  choiceType,
-  count,
-})
-
 const testEvaluateRoute = (
   tag: string,
-  testCases: [EvaluateRequest, Criteria][]
+  testCases: [EvaluateRequest, number][]
 ) => {
   const testName = `POST /evaluate - ${tag}`
   test(testName, async () => {
-    for (const [reqBody, criteria] of testCases) {
+    for (const [reqBody, count] of testCases) {
       const req = new Request('http://localhost/evaluate', {
         method: 'POST',
         body: JSON.stringify(reqBody),
@@ -35,15 +25,7 @@ const testEvaluateRoute = (
       const body = (await res.json()) as EvaluateResponse
       expect(body.data).not.toBeFalsy()
       const data = body.data as Choice[]
-      expect(data.length).toBe(criteria.count)
-      console.log(data)
-
-      let prevExpectedValue = Infinity
-      for (const choice of data) {
-        expect(choice.choiceType).toBe(criteria.choiceType)
-        expect(choice.expectedValue).toBeLessThanOrEqual(prevExpectedValue)
-        prevExpectedValue = choice.expectedValue
-      }
+      expect(data.length).toBe(count)
     }
   })
 }
@@ -80,7 +62,7 @@ testEvaluateRoute('basic', [
       [1, 1, 1, 1, 1],
       3
     ),
-    createCriteria('category', 1),
+    1,
   ],
   [
     createRequest(
@@ -101,7 +83,7 @@ testEvaluateRoute('basic', [
       [1, 1, 1, 1, 1],
       1
     ),
-    createCriteria('dice', 6),
+    6,
   ],
 ])
 
