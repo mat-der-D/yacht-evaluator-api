@@ -13,13 +13,13 @@ export const scoreSheetSchema = z.object({
   five: createNumberCategoryVariable(5),
   six: createNumberCategoryVariable(6),
   choice: z.int().min(5).max(30).nullable(),
-  fourOfAKind: z.int().min(5).max(30).nullable(),
+  fourOfAKind: z.union([z.int().min(5).max(30), z.literal(0)]).nullable(),
   fullHouse: z
     .int()
-    .min(5)
+    .min(0)
     .max(30)
-    .refine((n) => ![6, 29].includes(n), {
-      error: 'Expected a value excluding 6 and 29',
+    .refine((n) => ![1, 2, 3, 4, 6, 29].includes(n), {
+      error: 'Expected a value excluding 1, 2, 3, 4, 6 and 29',
     })
     .nullable(),
   smallStraight: z.literal([0, 15]).nullable(),
