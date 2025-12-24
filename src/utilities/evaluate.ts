@@ -20,6 +20,24 @@ import {
 import { createProbTable } from './probability'
 import { createDiceSetFromFullDice, type DiceSet } from './types'
 
+const BINARY_FILE_PATH = 'data/yacht_exp.bin'
+let evaluators: Evaluators | null = null
+let loadPromise: Promise<Evaluators> | null = null
+
+export const getEvaluators = async () => {
+  if (evaluators !== null) return evaluators
+  if (loadPromise !== null) return await loadPromise
+
+  loadPromise = createEvaluators(BINARY_FILE_PATH)
+  try {
+    evaluators = await loadPromise
+    return evaluators
+  } catch (error) {
+    loadPromise = null
+    throw error
+  }
+}
+
 export type Evaluators = {
   e1Prime: E1Prime
   e2Prime: E2Prime
