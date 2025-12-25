@@ -118,9 +118,7 @@ const evaluate12 = (
 
   // 部分ダイスを選ぶ選択肢
   for (const sub of diceTable.getSubDices(fullDice)) {
-    if (sub.counts.every((count, i) => fullDice.counts[i] == count)) {
-      continue // 役確定の選択肢なのでスキップ
-    }
+    if (sub.faces.length == 5) continue // 役確定の選択肢なのでスキップ
     const diceToHold = partialDiceSchema.parse(sub.faces)
     const expectedValue = evaluator12.get(scoreSheet, sub)
     if (expectedValue === undefined) continue
