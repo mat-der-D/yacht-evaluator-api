@@ -88,11 +88,16 @@ export const evaluate = (
   rollCount: number,
   evaluators: Evaluators
 ): Choice[] => {
+  const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
+  const bonus = calculateBonus(scoreSheet)
+  const baseScore = scoreOfSheet + bonus
   const fullDiceSet = createDiceSetFromFullDice(fullDice)
+
   const choices: Choice[] = []
   if (rollCount === 1) {
     const diceChoices = createDiceChoices(
       scoreSheet,
+      baseScore,
       fullDiceSet,
       evaluators.e1Prime,
       evaluators.diceTable
@@ -101,6 +106,7 @@ export const evaluate = (
   } else if (rollCount === 2) {
     const diceChoices = createDiceChoices(
       scoreSheet,
+      baseScore,
       fullDiceSet,
       evaluators.e1Prime,
       evaluators.diceTable
@@ -112,6 +118,7 @@ export const evaluate = (
 
   const categoryChoices = createCategoryChoices(
     scoreSheet,
+    baseScore,
     fullDiceSet,
     evaluators.e3Prime
   )
@@ -123,12 +130,11 @@ export const evaluate = (
 
 const createDiceChoices = (
   scoreSheet: ScoreSheet,
+  baseScore: number,
   fullDice: DiceSet,
   evaluator12: Evaluator12,
   diceTable: DiceTable
 ): DiceChoice[] => {
-  const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
-  const bonus = calculateBonus(scoreSheet)
   const choices: DiceChoice[] = []
 
   for (const sub of diceTable.getSubDices(fullDice)) {
@@ -139,7 +145,7 @@ const createDiceChoices = (
     const choice = diceChoiceSchema.parse({
       choiceType: 'dice',
       diceToHold,
-      expectedValue: expectedValue + scoreOfSheet + bonus,
+      expectedValue: expectedValue + baseScore,
     })
     choices.push(choice)
   }
@@ -149,11 +155,10 @@ const createDiceChoices = (
 
 const createCategoryChoices = (
   scoreSheet: ScoreSheet,
+  baseScore: number,
   fullDice: DiceSet,
   evaluator: Evaluator3
 ): CategoryChoice[] => {
-  const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
-  const bonus = calculateBonus(scoreSheet)
   const choices: CategoryChoice[] = []
 
   for (const category of categorySchema.options) {
@@ -162,7 +167,7 @@ const createCategoryChoices = (
     const choice = categoryChoiceSchema.parse({
       choiceType: 'category',
       category,
-      expectedValue: expectedValue + scoreOfSheet + bonus,
+      expectedValue: expectedValue + baseScore,
     })
     choices.push(choice)
   }
