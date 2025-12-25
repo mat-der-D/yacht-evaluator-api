@@ -25,7 +25,7 @@ import {
   type E3Prime,
 } from './expected-value'
 import { createProbTable } from './probability'
-import { calculateBonus, calculateScoreOfSheet } from './score'
+import { calculateScoreOfSheet } from './score'
 import { createDiceSetFromFullDice, type DiceSet } from './types'
 
 const BINARY_FILE_PATH = 'data/yacht_exp.bin'
@@ -88,9 +88,7 @@ export const evaluate = (
   rollCount: 1 | 2 | 3,
   evaluators: Evaluators
 ): Choice[] => {
-  const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
-  const bonus = calculateBonus(scoreSheet)
-  const baseScore = scoreOfSheet + bonus
+  const baseScore = calculateScoreOfSheet(scoreSheet)
   const fullDiceSet = createDiceSetFromFullDice(fullDice)
 
   const choices: Choice[] = []

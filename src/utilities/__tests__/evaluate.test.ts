@@ -1,6 +1,11 @@
 import { test, expect } from 'bun:test'
 import { evaluate, getEvaluators } from '../evaluate'
-import type { FullDice, ScoreSheet } from '../../types'
+import type {
+  Category,
+  CategoryChoice,
+  FullDice,
+  ScoreSheet,
+} from '../../types'
 
 test('Test for file loading', async () => {
   await getEvaluators()
@@ -186,4 +191,55 @@ testEvaluate('edge case', [
     3,
     createCriteria('category', 0),
   ],
+])
+
+const maxScoreSheet: ScoreSheet = {
+  ace: 5,
+  deuce: 10,
+  trey: 15,
+  four: 20,
+  five: 25,
+  six: 30,
+  choice: 30,
+  fourOfAKind: 30,
+  fullHouse: 30,
+  smallStraight: 15,
+  bigStraight: 30,
+  yacht: 50,
+}
+
+const createMaxScoreSheetExcept = (except: Category): ScoreSheet => {
+  return {
+    ...maxScoreSheet,
+    [except]: null,
+  }
+}
+
+const testFinalChoice = (
+  tag: string,
+  testCases: [Category, FullDice, number][]
+) => {
+  const testName = `Test for final choice: ${tag}`
+  test(testName, async () => {
+    const evaluators = await getEvaluators()
+    for (const [category, fullDice, answer] of testCases) {
+      const scoreSheet = createMaxScoreSheetExcept(category)
+      const result = evaluate(scoreSheet, fullDice, 3, evaluators)
+      expect(result.length).toBe(1)
+      const finalChoice = result[0]!
+      expect(finalChoice.choiceType).toBe('category')
+      const categoryChoice = finalChoice as CategoryChoice
+      expect(categoryChoice.category).toBe(category)
+      expect(categoryChoice.expectedValue).toBeCloseTo(answer)
+    }
+  })
+}
+
+testFinalChoice('basic', [
+  ['ace', [1, 1, 1, 1, 2], 324],
+  ['deuce', [2, 2, 2, 2, 5], 323],
+  ['trey', [3, 5, 2, 2, 1], 313],
+  ['four', [1, 2, 5, 3, 6], 305],
+  ['five', [5, 5, 2, 1, 3], 310],
+  ['six', [5, 5, 6, 5, 6], 307],
 ])
