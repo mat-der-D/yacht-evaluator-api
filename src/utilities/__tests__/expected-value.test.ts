@@ -25,6 +25,28 @@ const createScoreSheetExcept = (except: Category): ScoreSheet => {
   }
 }
 
+const maxScoreSheet: ScoreSheet = {
+  ace: 5,
+  deuce: 10,
+  trey: 15,
+  four: 20,
+  five: 25,
+  six: 30,
+  choice: 30,
+  fourOfAKind: 30,
+  fullHouse: 30,
+  smallStraight: 15,
+  bigStraight: 30,
+  yacht: 50,
+}
+
+const createMaxScoreSheetExcept = (except: Category): ScoreSheet => {
+  return {
+    ...maxScoreSheet,
+    [except]: null,
+  }
+}
+
 const createScoreSheetExceptMany = (except: Category[]): ScoreSheet => {
   const scoreSheet = {
     ...fullScoreSheet,
@@ -85,8 +107,34 @@ testE3Prime('11th turn test', binaryFilePath, [
     'smallStraight',
     0,
   ],
-  [createScoreSheetExcept('bigStraight'), [1, 2, 3, 4, 5], 'bigStraight', 30],
-  [createScoreSheetExcept('yacht'), [1, 1, 1, 1, 1], 'yacht', 50],
+  [
+    createMaxScoreSheetExcept('bigStraight'),
+    [1, 2, 3, 4, 5],
+    'bigStraight',
+    30,
+  ],
+  [createMaxScoreSheetExcept('yacht'), [1, 1, 1, 1, 1], 'yacht', 50],
+  [createMaxScoreSheetExcept('ace'), [1, 2, 5, 1, 2], 'ace', 2],
+  [createMaxScoreSheetExcept('deuce'), [1, 2, 5, 1, 2], 'deuce', 4],
+  [createMaxScoreSheetExcept('trey'), [2, 5, 1, 5, 6], 'trey', 0],
+  [createMaxScoreSheetExcept('four'), [4, 4, 4, 5, 4], 'four', 16],
+  [createMaxScoreSheetExcept('five'), [5, 1, 5, 1, 5], 'five', 15],
+  [createMaxScoreSheetExcept('six'), [6, 6, 6, 6, 6], 'six', 30],
+  [createMaxScoreSheetExcept('choice'), [1, 2, 3, 4, 5], 'choice', 15],
+  [createMaxScoreSheetExcept('fullHouse'), [1, 5, 2, 3, 1], 'fullHouse', 0],
+  [
+    createMaxScoreSheetExcept('smallStraight'),
+    [3, 3, 3, 3, 3],
+    'smallStraight',
+    0,
+  ],
+  [
+    createMaxScoreSheetExcept('bigStraight'),
+    [1, 2, 3, 4, 5],
+    'bigStraight',
+    30,
+  ],
+  [createMaxScoreSheetExcept('yacht'), [1, 1, 1, 1, 1], 'yacht', 50],
 ])
 
 testE3Prime('already filled test', binaryFilePath, [
