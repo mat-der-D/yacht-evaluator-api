@@ -24,7 +24,7 @@ const testEvaluate = (
   testCases: [
     ScoreSheet,
     FullDice,
-    number, // rollCount
+    1 | 2 | 3, // rollCount
     Criteria,
   ][]
 ) => {
