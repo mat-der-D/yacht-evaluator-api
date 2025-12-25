@@ -18,6 +18,7 @@ import {
   type E3Prime,
 } from './expected-value'
 import { createProbTable } from './probability'
+import { calculateBonus, calculateScoreOfSheet } from './score'
 import { createDiceSetFromFullDice, type DiceSet } from './types'
 
 const BINARY_FILE_PATH = 'data/yacht_exp.bin'
@@ -108,6 +109,8 @@ const evaluate12 = (
   evaluator: Evaluator12,
   diceTable: DiceTable
 ): Choice[] => {
+  const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
+  const bonus = calculateBonus(scoreSheet)
   const choices: Choice[] = []
   for (const sub of diceTable.getSubDices(fullDice)) {
     const diceToHold = partialDiceSchema.parse(sub.faces)
@@ -116,7 +119,7 @@ const evaluate12 = (
     const choice = diceChoiceSchema.parse({
       choiceType: 'dice',
       diceToHold,
-      expectedValue,
+      expectedValue: expectedValue + scoreOfSheet + bonus,
     })
     choices.push(choice)
   }
@@ -130,6 +133,8 @@ const evaluate3 = (
   fullDice: DiceSet,
   evaluator: Evaluator3
 ): Choice[] => {
+  const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
+  const bonus = calculateBonus(scoreSheet)
   const choices: Choice[] = []
   for (const category of categorySchema.options) {
     const expectedValue = evaluator.get(scoreSheet, fullDice, category)
@@ -137,7 +142,7 @@ const evaluate3 = (
     const choice = categoryChoiceSchema.parse({
       choiceType: 'category',
       category,
-      expectedValue,
+      expectedValue: expectedValue + scoreOfSheet + bonus,
     })
     choices.push(choice)
   }
