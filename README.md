@@ -101,7 +101,7 @@ curl -X POST http://localhost:3000/api/v1/evaluate \
 
 - `scoreSheet`: 現在のスコアシート（記入済み: 数値、未記入: null）
 - `dice`: 現在のサイコロ目（6面ダイス×5個の配列）
-- `rollCount`: 残りロール数（1=最後のロール、2=1ロール残、3=2ロール残）
+- `rollCount`: サイコロを投げた回数（1, 2 or 3）
 
 **レスポンス:**
 
