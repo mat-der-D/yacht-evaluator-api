@@ -4,7 +4,14 @@ import {
   diceChoiceSchema,
   partialDiceSchema,
 } from '../schemas'
-import type { Category, Choice, FullDice, ScoreSheet } from '../types'
+import type {
+  Category,
+  CategoryChoice,
+  Choice,
+  DiceChoice,
+  FullDice,
+  ScoreSheet,
+} from '../types'
 import { createDiceTable, type DiceTable } from './dice-table'
 import {
   createE1Prime,
@@ -82,41 +89,49 @@ export const evaluate = (
   evaluators: Evaluators
 ): Choice[] => {
   const fullDiceSet = createDiceSetFromFullDice(fullDice)
+  let choices: Choice[] = []
   if (rollCount === 1) {
-    return evaluate12(
+    const diceChoices = createDiceChoices(
       scoreSheet,
       fullDiceSet,
       evaluators.e1Prime,
-      evaluators.e3Prime,
       evaluators.diceTable
     )
+    choices = choices.concat(diceChoices)
   } else if (rollCount === 2) {
-    return evaluate12(
+    const diceChoices = createDiceChoices(
       scoreSheet,
       fullDiceSet,
-      evaluators.e2Prime,
-      evaluators.e3Prime,
+      evaluators.e1Prime,
       evaluators.diceTable
     )
-  } else if (rollCount === 3) {
-    return evaluate3(scoreSheet, fullDiceSet, evaluators.e3Prime)
-  } else {
-    throw new Error(`Expect rollcount to be 1, 2 or 3: ${rollCount}`)
+    choices = choices.concat(diceChoices)
+  } else if (rollCount !== 3) {
+    throw new Error(`Expected rollCount to be 1, 2 or 3: ${rollCount}`)
   }
+
+  const categoryChoices = createCategoryChoices(
+    scoreSheet,
+    fullDiceSet,
+    evaluators.e3Prime
+  )
+
+  choices = choices.concat(categoryChoices)
+  // 期待値で降順にソート
+  choices.sort((c1, c2) => c2.expectedValue - c1.expectedValue)
+  return choices
 }
 
-const evaluate12 = (
+const createDiceChoices = (
   scoreSheet: ScoreSheet,
   fullDice: DiceSet,
   evaluator12: Evaluator12,
-  evaluator3: Evaluator3,
   diceTable: DiceTable
-): Choice[] => {
+): DiceChoice[] => {
   const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
   const bonus = calculateBonus(scoreSheet)
-  const choices: Choice[] = []
+  const choices: DiceChoice[] = []
 
-  // 部分ダイスを選ぶ選択肢
   for (const sub of diceTable.getSubDices(fullDice)) {
     if (sub.faces.length == 5) continue // 役確定の選択肢なのでスキップ
     const diceToHold = partialDiceSchema.parse(sub.faces)
@@ -130,31 +145,18 @@ const evaluate12 = (
     choices.push(choice)
   }
 
-  // 役に確定させる選択肢
-  for (const category of categorySchema.options) {
-    const expectedValue = evaluator3.get(scoreSheet, fullDice, category)
-    if (expectedValue === undefined) continue
-    const choice = categoryChoiceSchema.parse({
-      choiceType: 'category',
-      category,
-      expectedValue: expectedValue + scoreOfSheet + bonus,
-    })
-    choices.push(choice)
-  }
-
-  // 期待値で降順にソート
-  choices.sort((c1, c2) => c2.expectedValue - c1.expectedValue)
   return choices
 }
 
-const evaluate3 = (
+const createCategoryChoices = (
   scoreSheet: ScoreSheet,
   fullDice: DiceSet,
   evaluator: Evaluator3
-): Choice[] => {
+): CategoryChoice[] => {
   const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
   const bonus = calculateBonus(scoreSheet)
-  const choices: Choice[] = []
+  const choices: CategoryChoice[] = []
+
   for (const category of categorySchema.options) {
     const expectedValue = evaluator.get(scoreSheet, fullDice, category)
     if (expectedValue === undefined) continue
@@ -165,7 +167,6 @@ const evaluate3 = (
     })
     choices.push(choice)
   }
-  // 期待値で降順にソート
-  choices.sort((c1, c2) => c2.expectedValue - c1.expectedValue)
+
   return choices
 }
