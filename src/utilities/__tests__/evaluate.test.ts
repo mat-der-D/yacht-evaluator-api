@@ -7,11 +7,14 @@ test('Test for file loading', async () => {
 })
 
 type Criteria = {
-  choiceType: 'dice' | 'category'
+  choiceType: 'dice' | 'category' | null
   count: number
 }
 
-const createCriteria = (choiceType: 'dice' | 'category', count: number) => ({
+const createCriteria = (
+  choiceType: 'dice' | 'category' | null,
+  count: number
+) => ({
   choiceType,
   count,
 })
@@ -33,7 +36,12 @@ const testEvaluate = (
       expect(choices.length).toBe(criteria.count)
       let prevExpectedValue = Infinity
       for (const choice of choices) {
-        expect(choice.choiceType).toBe(criteria.choiceType)
+        if (criteria.choiceType !== null) {
+          expect(choice.choiceType).toBe(criteria.choiceType)
+        }
+        if (choice.choiceType == 'dice') {
+          expect(choice.diceToHold.length).not.toBe(5)
+        }
         expect(choice.expectedValue).toBeLessThanOrEqual(prevExpectedValue)
         prevExpectedValue = choice.expectedValue
       }
@@ -59,7 +67,7 @@ testEvaluate('basic', [
     },
     [1, 4, 5, 6, 6],
     1,
-    createCriteria('dice', 24),
+    createCriteria(null, 35),
   ],
   [
     {
@@ -97,7 +105,7 @@ testEvaluate('basic', [
     },
     [1, 1, 1, 1, 1],
     2,
-    createCriteria('dice', 6),
+    createCriteria(null, 6),
   ],
   [
     {
@@ -116,7 +124,7 @@ testEvaluate('basic', [
     },
     [1, 1, 1, 1, 1],
     1,
-    createCriteria('dice', 6),
+    createCriteria(null, 6),
   ],
 ])
 
@@ -138,7 +146,7 @@ testEvaluate('edge case', [
     },
     [1, 1, 1, 1, 1],
     1,
-    createCriteria('dice', 0),
+    createCriteria(null, 0),
   ],
   [
     {
@@ -157,7 +165,7 @@ testEvaluate('edge case', [
     },
     [1, 1, 1, 1, 1],
     2,
-    createCriteria('dice', 0),
+    createCriteria(null, 0),
   ],
   [
     {
