@@ -85,7 +85,7 @@ type Evaluator3 = {
 export const evaluate = (
   scoreSheet: ScoreSheet,
   fullDice: FullDice,
-  rollCount: number,
+  rollCount: 1 | 2 | 3,
   evaluators: Evaluators
 ): Choice[] => {
   const scoreOfSheet = calculateScoreOfSheet(scoreSheet)
@@ -94,26 +94,16 @@ export const evaluate = (
   const fullDiceSet = createDiceSetFromFullDice(fullDice)
 
   const choices: Choice[] = []
-  if (rollCount === 1) {
+  if (rollCount === 1 || rollCount === 2) {
+    const evaluator = rollCount === 1 ? evaluators.e1Prime : evaluators.e2Prime
     const diceChoices = createDiceChoices(
       scoreSheet,
       baseScore,
       fullDiceSet,
-      evaluators.e1Prime,
+      evaluator,
       evaluators.diceTable
     )
     choices.push(...diceChoices)
-  } else if (rollCount === 2) {
-    const diceChoices = createDiceChoices(
-      scoreSheet,
-      baseScore,
-      fullDiceSet,
-      evaluators.e1Prime,
-      evaluators.diceTable
-    )
-    choices.push(...diceChoices)
-  } else if (rollCount !== 3) {
-    throw new Error(`Expected rollCount to be 1, 2 or 3: ${rollCount}`)
   }
 
   const categoryChoices = createCategoryChoices(
@@ -122,6 +112,7 @@ export const evaluate = (
     fullDiceSet,
     evaluators.e3Prime
   )
+
   choices.push(...categoryChoices)
   // 期待値で降順にソート
   choices.sort((c1, c2) => c2.expectedValue - c1.expectedValue)
