@@ -3,10 +3,10 @@ FROM oven/bun:latest
 WORKDIR /app
 
 # 依存関係ファイルをコピー
-COPY package.json bunfig.toml ./
+COPY package.json bun.lock ./
 
 # 依存関係をインストール
-RUN bun install --production
+RUN bun install --production --frozen-lockfile
 
 # ソースコードをコピー
 COPY src ./src
